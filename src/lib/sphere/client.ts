@@ -48,7 +48,7 @@ let active: AutoConnectResultShape | null = null;
 let connectingPromise: Promise<AutoConnectResultShape> | null = null;
 
 async function loadAutoConnect() {
-  const mod = await import("@unicitylabs/sphere-sdk/impl/browser/connect");
+  const mod = await import("@unicitylabs/sphere-sdk/connect/browser");
   return mod.autoConnect;
 }
 
