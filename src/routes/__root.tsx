@@ -21,7 +21,7 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <p className="mt-4 text-sm text-muted-foreground">
-          This route doesn't exist on the Unicity Testnet Dashboard.
+          This route doesn't exist in the Unicity Dev Console.
         </p>
         <Link
           to="/"
