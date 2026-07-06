@@ -11,6 +11,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
+import { useSettings } from "@/lib/settings";
 import * as sdk from "./client";
 import type { SendParams, SphereIdentity, SphereNetworkInfo } from "./types";
 
@@ -18,6 +19,8 @@ interface SphereContextValue {
   identity: SphereIdentity | null;
   network: SphereNetworkInfo | null;
   transport: string | null;
+  sessionId: string | null;
+  connectedAt: number | null;
   isConnecting: boolean;
   isConnected: boolean;
   connect: () => Promise<void>;
@@ -30,6 +33,8 @@ export function SphereProvider({ children }: { children: ReactNode }) {
   const [identity, setIdentity] = useState<SphereIdentity | null>(null);
   const [network, setNetwork] = useState<SphereNetworkInfo | null>(null);
   const [transport, setTransport] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [connectedAt, setConnectedAt] = useState<number | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const attemptedResume = useRef(false);
   const queryClient = useQueryClient();
@@ -38,6 +43,8 @@ export function SphereProvider({ children }: { children: ReactNode }) {
     setIdentity(sdk.getIdentitySync());
     setNetwork(sdk.getNetworkSync());
     setTransport(sdk.getTransportSync());
+    setSessionId(sdk.getSessionIdSync());
+    setConnectedAt(sdk.getConnectedAtSync());
   }, []);
 
   useEffect(() => {
@@ -75,6 +82,8 @@ export function SphereProvider({ children }: { children: ReactNode }) {
     setIdentity(null);
     setNetwork(null);
     setTransport(null);
+    setSessionId(null);
+    setConnectedAt(null);
     queryClient.clear();
     toast("Wallet disconnected");
   }, [queryClient]);
@@ -84,12 +93,23 @@ export function SphereProvider({ children }: { children: ReactNode }) {
       identity,
       network,
       transport,
+      sessionId,
+      connectedAt,
       isConnecting,
       isConnected: !!identity,
       connect,
       disconnect,
     }),
-    [identity, network, transport, isConnecting, connect, disconnect],
+    [
+      identity,
+      network,
+      transport,
+      sessionId,
+      connectedAt,
+      isConnecting,
+      connect,
+      disconnect,
+    ],
   );
 
   return (
@@ -103,26 +123,26 @@ export function useSphere(): SphereContextValue {
   return ctx;
 }
 
-const AUTO_REFRESH_MS = 30_000;
-
 export function useBalances() {
   const { isConnected } = useSphere();
+  const { autoRefreshMs } = useSettings();
   return useQuery({
     queryKey: ["sphere", "balances"],
     queryFn: () => sdk.getBalances(),
     enabled: isConnected,
-    refetchInterval: AUTO_REFRESH_MS,
+    refetchInterval: autoRefreshMs > 0 ? autoRefreshMs : false,
     staleTime: 10_000,
   });
 }
 
 export function useHistory() {
   const { isConnected } = useSphere();
+  const { autoRefreshMs } = useSettings();
   return useQuery({
     queryKey: ["sphere", "history"],
     queryFn: () => sdk.getHistory(),
     enabled: isConnected,
-    refetchInterval: AUTO_REFRESH_MS,
+    refetchInterval: autoRefreshMs > 0 ? autoRefreshMs : false,
     staleTime: 10_000,
   });
 }

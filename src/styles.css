@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Unicity Testnet Dashboard — dark-first design system with orange accents.
+ * Unicity Dev Console — dark-first design system with orange accents.
  * All colors expressed in oklch. Semantic tokens only — do NOT hardcode
  * colors in components.
  */

@@ -9,14 +9,30 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as TransactionsRouteImport } from './routes/transactions'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SendRouteImport } from './routes/send'
+import { Route as PlaygroundRouteImport } from './routes/playground'
 import { Route as NetworkRouteImport } from './routes/network'
+import { Route as LogsRouteImport } from './routes/logs'
+import { Route as ExplorerRouteImport } from './routes/explorer'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WalletRoute = WalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TransactionsRoute = TransactionsRouteImport.update({
   id: '/transactions',
   path: '/transactions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SendRoute = SendRouteImport.update({
@@ -24,9 +40,29 @@ const SendRoute = SendRouteImport.update({
   path: '/send',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlaygroundRoute = PlaygroundRouteImport.update({
+  id: '/playground',
+  path: '/playground',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NetworkRoute = NetworkRouteImport.update({
   id: '/network',
   path: '/network',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogsRoute = LogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExplorerRoute = ExplorerRouteImport.update({
+  id: '/explorer',
+  path: '/explorer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,45 +73,114 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/explorer': typeof ExplorerRoute
+  '/logs': typeof LogsRoute
   '/network': typeof NetworkRoute
+  '/playground': typeof PlaygroundRoute
   '/send': typeof SendRoute
+  '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
+  '/wallet': typeof WalletRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/explorer': typeof ExplorerRoute
+  '/logs': typeof LogsRoute
   '/network': typeof NetworkRoute
+  '/playground': typeof PlaygroundRoute
   '/send': typeof SendRoute
+  '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
+  '/wallet': typeof WalletRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/explorer': typeof ExplorerRoute
+  '/logs': typeof LogsRoute
   '/network': typeof NetworkRoute
+  '/playground': typeof PlaygroundRoute
   '/send': typeof SendRoute
+  '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
+  '/wallet': typeof WalletRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/network' | '/send' | '/transactions'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/explorer'
+    | '/logs'
+    | '/network'
+    | '/playground'
+    | '/send'
+    | '/settings'
+    | '/transactions'
+    | '/wallet'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/network' | '/send' | '/transactions'
-  id: '__root__' | '/' | '/network' | '/send' | '/transactions'
+  to:
+    | '/'
+    | '/about'
+    | '/explorer'
+    | '/logs'
+    | '/network'
+    | '/playground'
+    | '/send'
+    | '/settings'
+    | '/transactions'
+    | '/wallet'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/explorer'
+    | '/logs'
+    | '/network'
+    | '/playground'
+    | '/send'
+    | '/settings'
+    | '/transactions'
+    | '/wallet'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  ExplorerRoute: typeof ExplorerRoute
+  LogsRoute: typeof LogsRoute
   NetworkRoute: typeof NetworkRoute
+  PlaygroundRoute: typeof PlaygroundRoute
   SendRoute: typeof SendRoute
+  SettingsRoute: typeof SettingsRoute
   TransactionsRoute: typeof TransactionsRoute
+  WalletRoute: typeof WalletRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wallet': {
+      id: '/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/transactions': {
       id: '/transactions'
       path: '/transactions'
       fullPath: '/transactions'
       preLoaderRoute: typeof TransactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/send': {
@@ -85,11 +190,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SendRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/playground': {
+      id: '/playground'
+      path: '/playground'
+      fullPath: '/playground'
+      preLoaderRoute: typeof PlaygroundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/network': {
       id: '/network'
       path: '/network'
       fullPath: '/network'
       preLoaderRoute: typeof NetworkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explorer': {
+      id: '/explorer'
+      path: '/explorer'
+      fullPath: '/explorer'
+      preLoaderRoute: typeof ExplorerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -104,20 +237,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  ExplorerRoute: ExplorerRoute,
+  LogsRoute: LogsRoute,
   NetworkRoute: NetworkRoute,
+  PlaygroundRoute: PlaygroundRoute,
   SendRoute: SendRoute,
+  SettingsRoute: SettingsRoute,
   TransactionsRoute: TransactionsRoute,
+  WalletRoute: WalletRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

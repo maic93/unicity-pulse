@@ -16,9 +16,9 @@ export function ConnectGate({ children }: { children: ReactNode }) {
         Connect your Sphere Wallet
       </h1>
       <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-        This dashboard talks to the real Unicity Testnet via the official Sphere
-        Connect protocol. Approve the connection in your Sphere wallet to
-        continue.
+        The Unicity Dev Console talks to the real Unicity Testnet via the
+        official Sphere Connect protocol. Approve the connection in your
+        Sphere wallet to unlock the developer tools.
       </p>
       <Button
         className="mt-6"

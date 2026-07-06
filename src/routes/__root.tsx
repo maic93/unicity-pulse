@@ -21,7 +21,7 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <p className="mt-4 text-sm text-muted-foreground">
-          This route doesn't exist on the Unicity Testnet Dashboard.
+          This route doesn't exist in the Unicity Dev Console.
         </p>
         <Link
           to="/"
@@ -63,18 +63,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Unicity Testnet Dashboard" },
+      { title: "Unicity Dev Console" },
       {
         name: "description",
         content:
-          "Production dashboard for the Unicity Testnet — connect your Sphere Wallet, view balances and transactions, and send testnet tokens.",
+          "Developer console for exploring and interacting with the Unicity Testnet through the official Sphere SDK — playground, logs, explorer and network tools.",
       },
-      { name: "author", content: "Unicity Testnet Dashboard" },
-      { property: "og:title", content: "Unicity Testnet Dashboard" },
+      { name: "author", content: "Unicity Dev Console" },
+      { property: "og:title", content: "Unicity Dev Console" },
       {
         property: "og:description",
         content:
-          "Connect Sphere Wallet, view balances, transactions, and send Unicity testnet tokens.",
+          "Developer tools for the Unicity Testnet: SDK playground, request logs, blockchain explorer and Sphere Connect diagnostics.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

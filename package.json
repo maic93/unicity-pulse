@@ -1,5 +1,6 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "unicity-dev-console",
+  "description": "A developer console for exploring and interacting with the Unicity Testnet using the official Sphere SDK.",
   "private": true,
   "sideEffects": false,
   "type": "module",

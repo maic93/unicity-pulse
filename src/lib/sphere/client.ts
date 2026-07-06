@@ -6,10 +6,14 @@
  * place in the app that touches the SDK — UI components consume the
  * `useSphere()` hook (see provider.tsx), never the SDK directly.
  *
+ * Every SDK query, intent and lifecycle event is recorded in the
+ * in-memory `sdkLog` so the /logs page can render a live timeline.
+ *
  * Connect protocol reference:
  *   https://github.com/unicity-sphere/sphere-sdk/blob/main/docs/CONNECT.md
  */
 
+import { sdkLog } from "./log";
 import type {
   CoinBalance,
   HistoryEntry,
@@ -44,8 +48,15 @@ const TESTNET_NETWORK: SphereNetworkInfo = { id: 4, name: "testnet2" };
 
 const SESSION_KEY = "sphere-connect:sessionId";
 
+// Version of the SDK we depend on. Kept in sync with package.json manually
+// because pkg imports don't survive the SSR bundler cleanly.
+export const SDK_VERSION = "0.11.3";
+export const SDK_PACKAGE = "@unicitylabs/sphere-sdk";
+export const GATEWAY_URL = "https://gateway.testnet2.unicity.network";
+
 let active: AutoConnectResultShape | null = null;
 let connectingPromise: Promise<AutoConnectResultShape> | null = null;
+let connectedAt: number | null = null;
 
 async function loadAutoConnect() {
   const mod = await import("@unicitylabs/sphere-sdk/connect/browser");
@@ -59,25 +70,59 @@ async function doConnect(silent: boolean): Promise<AutoConnectResultShape> {
   const autoConnect = await loadAutoConnect();
   const resumeSessionId = window.localStorage.getItem(SESSION_KEY) ?? undefined;
 
-  const result = (await autoConnect({
-    dapp: {
-      name: "Unicity Testnet Dashboard",
-      description: "Real-time dashboard for the Unicity Testnet",
-      url: window.location.origin,
-    },
-    walletUrl: SPHERE_WALLET_URL,
-    network: TESTNET_NETWORK,
-    resumeSessionId,
-    silent,
-  })) as unknown as AutoConnectResultShape;
+  const entry = sdkLog.start({
+    method: silent ? "sphere.reconnect" : "sphere.connect",
+    kind: "connect",
+    params: { network: TESTNET_NETWORK, silent, hasSession: !!resumeSessionId },
+  });
 
-  active = result;
   try {
-    window.localStorage.setItem(SESSION_KEY, result.connection.sessionId);
-  } catch {
-    /* ignore storage failure */
+    const result = (await autoConnect({
+      dapp: {
+        name: "Unicity Dev Console",
+        description: "Developer console for the Unicity Testnet",
+        url: window.location.origin,
+      },
+      walletUrl: SPHERE_WALLET_URL,
+      network: TESTNET_NETWORK,
+      resumeSessionId,
+      silent,
+    })) as unknown as AutoConnectResultShape;
+
+    active = result;
+    connectedAt = Date.now();
+
+    // Forward wallet lifecycle events into the log for developer visibility.
+    for (const ev of ["identityChanged", "networkChanged", "locked", "disconnected"]) {
+      try {
+        result.client.on(ev, (data) => sdkLog.event(`wallet:${ev}`, data));
+      } catch {
+        /* not all events may be supported */
+      }
+    }
+
+    try {
+      window.localStorage.setItem(SESSION_KEY, result.connection.sessionId);
+    } catch {
+      /* ignore storage failure */
+    }
+    sdkLog.finish(entry.id, {
+      status: "ok",
+      response: {
+        transport: result.transport,
+        sessionId: result.connection.sessionId,
+        identity: result.client.walletIdentity,
+        network: result.client.walletNetwork,
+      },
+    });
+    return result;
+  } catch (err) {
+    sdkLog.finish(entry.id, {
+      status: "error",
+      error: toErrorShape(err),
+    });
+    throw err;
   }
-  return result;
 }
 
 export async function connectWallet(): Promise<SphereIdentity> {
@@ -108,10 +153,15 @@ export async function reconnectWallet(): Promise<SphereIdentity | null> {
 }
 
 export async function disconnectWallet(): Promise<void> {
+  const entry = sdkLog.start({ method: "sphere.disconnect", kind: "disconnect" });
   try {
     await active?.disconnect();
+    sdkLog.finish(entry.id, { status: "ok" });
+  } catch (err) {
+    sdkLog.finish(entry.id, { status: "error", error: toErrorShape(err) });
   } finally {
     active = null;
+    connectedAt = null;
     if (typeof window !== "undefined") {
       try {
         window.localStorage.removeItem(SESSION_KEY);
@@ -134,6 +184,14 @@ export function getTransportSync(): string | null {
   return active?.transport ?? null;
 }
 
+export function getSessionIdSync(): string | null {
+  return active?.connection.sessionId ?? null;
+}
+
+export function getConnectedAtSync(): number | null {
+  return connectedAt;
+}
+
 export function isConnectedSync(): boolean {
   return !!active?.client.isConnected;
 }
@@ -145,33 +203,94 @@ function requireClient() {
   return active.client;
 }
 
-export async function getIdentity(): Promise<SphereIdentity> {
+async function loggedQuery<T>(
+  method: string,
+  params?: Record<string, unknown>,
+): Promise<T> {
   const c = requireClient();
-  return await c.query<SphereIdentity>("sphere_getIdentity");
+  const entry = sdkLog.start({ method, kind: "query", params });
+  try {
+    const response = await c.query<T>(method, params);
+    sdkLog.finish(entry.id, { status: "ok", response });
+    return response;
+  } catch (err) {
+    sdkLog.finish(entry.id, { status: "error", error: toErrorShape(err) });
+    throw err;
+  }
+}
+
+async function loggedIntent<T>(
+  action: string,
+  params: Record<string, unknown>,
+): Promise<T> {
+  const c = requireClient();
+  const entry = sdkLog.start({ method: `intent:${action}`, kind: "intent", params });
+  try {
+    const response = await c.intent<T>(action, params);
+    sdkLog.finish(entry.id, { status: "ok", response });
+    return response;
+  } catch (err) {
+    sdkLog.finish(entry.id, { status: "error", error: toErrorShape(err) });
+    throw err;
+  }
+}
+
+export async function getIdentity(): Promise<SphereIdentity> {
+  return loggedQuery<SphereIdentity>("sphere_getIdentity");
 }
 
 /** Fetch balances. The SDK returns provider-specific shapes; we normalise. */
 export async function getBalances(): Promise<CoinBalance[]> {
-  const c = requireClient();
-  const raw = await c.query<unknown>("sphere_getBalance");
+  const raw = await loggedQuery<unknown>("sphere_getBalance");
   return normaliseBalances(raw);
 }
 
 export async function getHistory(): Promise<HistoryEntry[]> {
-  const c = requireClient();
-  const raw = await c.query<unknown>("sphere_getHistory", { limit: 100 });
+  const raw = await loggedQuery<unknown>("sphere_getHistory", { limit: 100 });
   return normaliseHistory(raw);
 }
 
+export async function getNetworkStatus(): Promise<unknown> {
+  return loggedQuery<unknown>("sphere_getNetwork");
+}
+
+export async function getLatestBlock(): Promise<unknown> {
+  // The exact RPC name is provider-specific; we try common ones and
+  // return the first non-null response for the developer to inspect.
+  const candidates = ["sphere_getLatestBlock", "sphere_getBlock", "sphere_getChainTip"];
+  let lastError: unknown = null;
+  for (const m of candidates) {
+    try {
+      return await loggedQuery<unknown>(m);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError ?? new Error("No block RPC available on this provider");
+}
+
 export async function sendTokens(params: SendParams): Promise<SendResult> {
-  const c = requireClient();
-  const result = await c.intent<SendResult>("send", {
+  return loggedIntent<SendResult>("send", {
     recipient: params.recipient,
     amount: params.amount,
     coinId: params.coinId,
     ...(params.memo ? { memo: params.memo } : {}),
   });
-  return result;
+}
+
+/** Raw playground call: developer-supplied method + params. */
+export async function rawQuery(
+  method: string,
+  params?: Record<string, unknown>,
+): Promise<unknown> {
+  return loggedQuery<unknown>(method, params);
+}
+
+export async function rawIntent(
+  action: string,
+  params: Record<string, unknown>,
+): Promise<unknown> {
+  return loggedIntent<unknown>(action, params);
 }
 
 /** Subscribe to wallet events (identity change, lock). Returns unsubscribe. */
@@ -181,6 +300,11 @@ export function onWalletEvent(
 ): () => void {
   if (!active) return () => undefined;
   return active.client.on(event, handler);
+}
+
+function toErrorShape(err: unknown): { message: string; stack?: string } {
+  if (err instanceof Error) return { message: err.message, stack: err.stack };
+  return { message: String(err) };
 }
 
 // --- normalisation helpers ---------------------------------------------------

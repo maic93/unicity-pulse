@@ -1,9 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
-  ArrowUpRight,
-  ListOrdered,
+  Wallet,
+  Compass,
+  Terminal,
   Radio,
+  ListOrdered,
+  ScrollText,
+  Settings,
+  Info,
+  ArrowUpRight,
   Menu,
   X,
 } from "lucide-react";
@@ -12,12 +18,42 @@ import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { WalletButton } from "@/components/wallet/WalletButton";
 
-const NAV = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/transactions", label: "Transactions", icon: ListOrdered },
-  { to: "/send", label: "Send", icon: ArrowUpRight },
-  { to: "/network", label: "Network", icon: Radio },
-] as const;
+type NavGroup = {
+  label: string;
+  items: {
+    to: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }[];
+};
+
+const NAV: NavGroup[] = [
+  {
+    label: "Overview",
+    items: [
+      { to: "/", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/wallet", label: "Wallet", icon: Wallet },
+      { to: "/explorer", label: "Explorer", icon: Compass },
+    ],
+  },
+  {
+    label: "Developer",
+    items: [
+      { to: "/playground", label: "API Playground", icon: Terminal },
+      { to: "/network", label: "Network", icon: Radio },
+      { to: "/transactions", label: "Transactions", icon: ListOrdered },
+      { to: "/logs", label: "Logs", icon: ScrollText },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { to: "/send", label: "Send tokens", icon: ArrowUpRight },
+      { to: "/settings", label: "Settings", icon: Settings },
+      { to: "/about", label: "About", icon: Info },
+    ],
+  },
+];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -28,15 +64,24 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Sidebar (desktop) */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-sidebar/60 backdrop-blur-xl lg:flex">
         <Brand />
-        <nav className="flex-1 space-y-1 px-3 py-4">
-          {NAV.map((item) => (
-            <NavItem
-              key={item.to}
-              to={item.to}
-              label={item.label}
-              icon={item.icon}
-              active={isActive(pathname, item.to)}
-            />
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
+          {NAV.map((group) => (
+            <div key={group.label} className="mb-4">
+              <p className="mono px-3 pb-1.5 text-[10px] uppercase tracking-widest text-muted-foreground/70">
+                {group.label}
+              </p>
+              <div className="space-y-0.5">
+                {group.items.map((item) => (
+                  <NavItem
+                    key={item.to}
+                    to={item.to}
+                    label={item.label}
+                    icon={item.icon}
+                    active={isActive(pathname, item.to)}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
         <Footer />
@@ -52,16 +97,25 @@ export function AppShell({ children }: { children: ReactNode }) {
           />
           <aside className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-sidebar lg:hidden">
             <Brand onClose={() => setMobileOpen(false)} />
-            <nav className="flex-1 space-y-1 px-3 py-4">
-              {NAV.map((item) => (
-                <NavItem
-                  key={item.to}
-                  to={item.to}
-                  label={item.label}
-                  icon={item.icon}
-                  active={isActive(pathname, item.to)}
-                  onClick={() => setMobileOpen(false)}
-                />
+            <nav className="flex-1 overflow-y-auto px-3 py-4">
+              {NAV.map((group) => (
+                <div key={group.label} className="mb-4">
+                  <p className="mono px-3 pb-1.5 text-[10px] uppercase tracking-widest text-muted-foreground/70">
+                    {group.label}
+                  </p>
+                  <div className="space-y-0.5">
+                    {group.items.map((item) => (
+                      <NavItem
+                        key={item.to}
+                        to={item.to}
+                        label={item.label}
+                        icon={item.icon}
+                        active={isActive(pathname, item.to)}
+                        onClick={() => setMobileOpen(false)}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </nav>
             <Footer />
@@ -85,7 +139,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               TESTNET
             </span>
             <span className="text-sm text-muted-foreground">
-              Unicity · sphere-connect v2
+              Unicity Dev Console · sphere-connect v2
             </span>
           </div>
           <WalletButton />
@@ -105,9 +159,14 @@ function Brand({ onClose }: { onClose?: () => void }) {
         <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/30">
           <span className="mono text-sm font-bold">U</span>
         </span>
-        <span className="text-sm font-semibold tracking-tight">
-          Unicity <span className="text-primary">Dashboard</span>
-        </span>
+        <div className="leading-tight">
+          <p className="text-sm font-semibold tracking-tight">
+            Unicity <span className="text-primary">Dev Console</span>
+          </p>
+          <p className="mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            developer tools · testnet2
+          </p>
+        </div>
       </Link>
       {onClose && (
         <button
@@ -156,7 +215,7 @@ function Footer() {
   return (
     <div className="border-t border-border px-5 py-4 text-xs text-muted-foreground">
       <p>Powered by</p>
-      <p className="mt-0.5 mono text-foreground">@unicitylabs/sphere-sdk</p>
+      <p className="mono mt-0.5 text-foreground">@unicitylabs/sphere-sdk</p>
     </div>
   );
 }
