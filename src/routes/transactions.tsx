@@ -1,41 +1,39 @@
 import { createFileRoute, ClientOnly } from "@tanstack/react-router";
-import { ArrowDownLeft, ArrowUpRight, Copy, Search } from "lucide-react";
-import { useMemo, useState } from "react";
-import { toast } from "sonner";
+import { Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-import { GlassCard } from "@/components/GlassCard";
-import { StatusBadge } from "@/components/StatusBadge";
+import { BlockchainTimeline, type TimelineEvent } from "@/components/BlockchainTimeline";
 import { ConnectGate } from "@/components/wallet/ConnectGate";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useHistory } from "@/lib/sphere/provider";
-import {
-  formatAmount,
-  formatTimestamp,
-  shortAddress,
-} from "@/lib/format";
+import { useHistory, useSphere } from "@/lib/sphere/provider";
+import { sdkLog } from "@/lib/sphere/log";
 
 type Filter = "all" | "in" | "out";
 
 export const Route = createFileRoute("/transactions")({
-  component: TransactionsPage,
+  component: TimelinePage,
 });
 
-function TransactionsPage() {
+function TimelinePage() {
   return (
     <ClientOnly fallback={<Skeleton className="h-96 w-full" />}>
       <ConnectGate>
-        <TransactionsView />
+        <TimelineView />
       </ConnectGate>
     </ClientOnly>
   );
 }
 
-function TransactionsView() {
+function TimelineView() {
   const history = useHistory();
+  const { connectedAt } = useSphere();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
+  const [logTick, setLogTick] = useState(0);
+
+  useEffect(() => sdkLog.subscribe(() => setLogTick((n) => n + 1)), []);
 
   const rows = useMemo(() => {
     const items = history.data ?? [];
@@ -51,132 +49,112 @@ function TransactionsView() {
     });
   }, [history.data, query, filter]);
 
+  const events = useMemo<TimelineEvent[]>(() => {
+    const evs: TimelineEvent[] = [];
+    if (connectedAt) {
+      evs.push({
+        id: "session-start",
+        timestamp: connectedAt,
+        title: "Sphere Connect established",
+        description: "Wallet approved this dapp on the Unicity Testnet.",
+        variant: "primary",
+      });
+    }
+    // Include recent SDK connect / disconnect / event entries
+    const entries = sdkLog.list().slice(0, 25);
+    for (const e of entries) {
+      if (e.kind === "connect" && e.status === "ok") {
+        evs.push({
+          id: `log-${e.id}`,
+          timestamp: e.startedAt,
+          title: "Session synced",
+          description: `Transport · ${(e.response as { transport?: string })?.transport ?? "auto"}`,
+          variant: "success",
+        });
+      }
+      if (e.kind === "event") {
+        evs.push({
+          id: `log-${e.id}`,
+          timestamp: e.startedAt,
+          title: e.method,
+          description: "Wallet lifecycle event",
+          variant: "info",
+        });
+      }
+    }
+    return evs;
+  }, [connectedAt, logTick]);
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
-        <p className="text-sm text-muted-foreground">
-          Real transaction history retrieved via <code className="mono">sphere_getHistory</code>.
+    <div className="space-y-8">
+      <div className="animate-fade-up">
+        <p className="mono text-[11px] uppercase tracking-[0.25em] text-secondary">
+          Blockchain timeline
+        </p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+          Every heartbeat, in order.
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          Real transactions retrieved via <code className="mono">sphere_getHistory</code>{" "}
+          on the Unicity Testnet, interleaved with wallet lifecycle events from
+          the live SDK log.
         </p>
       </div>
 
-      <GlassCard>
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-[220px]">
+      <div className="glass rounded-2xl p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative min-w-[220px] flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by hash, address, memo…"
+              placeholder="Search hash, address, memo…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9"
+              className="rounded-full pl-9"
             />
           </div>
-          <div className="flex gap-1 rounded-md border border-border bg-card/60 p-1">
+          <div className="flex gap-1 rounded-full border border-border/60 bg-card/60 p-1">
             {(["all", "in", "out"] as Filter[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={
                   filter === f
-                    ? "rounded-sm bg-primary px-3 py-1 text-xs font-medium text-primary-foreground"
-                    : "rounded-sm px-3 py-1 text-xs text-muted-foreground hover:text-foreground"
+                    ? "mono rounded-full bg-primary px-3 py-1 text-[11px] font-medium uppercase tracking-widest text-primary-foreground"
+                    : "mono rounded-full px-3 py-1 text-[11px] uppercase tracking-widest text-muted-foreground hover:text-foreground"
                 }
               >
-                {f === "all" ? "All" : f === "in" ? "Incoming" : "Outgoing"}
+                {f === "all" ? "All" : f === "in" ? "In" : "Out"}
               </button>
             ))}
           </div>
           <Button
             variant="outline"
             size="sm"
+            className="rounded-full"
             onClick={() => void history.refetch()}
           >
             Refresh
           </Button>
         </div>
+      </div>
 
-        {history.isLoading ? (
-          <div className="space-y-2">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 w-full" />
-            ))}
-          </div>
-        ) : rows.length === 0 ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">
-            No transactions match your filters.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-                  <th className="pb-3 font-medium">Type</th>
-                  <th className="pb-3 font-medium">Hash</th>
-                  <th className="pb-3 font-medium">Amount</th>
-                  <th className="pb-3 font-medium">Status</th>
-                  <th className="pb-3 font-medium">When</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {rows.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-muted/20">
-                    <td className="py-3">
-                      <span
-                        className={
-                          tx.direction === "in"
-                            ? "inline-flex items-center gap-2 text-success"
-                            : "inline-flex items-center gap-2 text-primary"
-                        }
-                      >
-                        {tx.direction === "in" ? (
-                          <ArrowDownLeft className="h-4 w-4" />
-                        ) : (
-                          <ArrowUpRight className="h-4 w-4" />
-                        )}
-                        {tx.direction === "in" ? "In" : "Out"}
-                      </span>
-                    </td>
-                    <td className="py-3">
-                      <button
-                        className="mono inline-flex items-center gap-1.5 text-xs hover:text-primary"
-                        onClick={() => {
-                          void navigator.clipboard.writeText(
-                            tx.hash ?? tx.id,
-                          );
-                          toast.success("Hash copied");
-                        }}
-                      >
-                        {shortAddress(tx.hash ?? tx.id, 8, 6)}
-                        <Copy className="h-3 w-3" />
-                      </button>
-                    </td>
-                    <td className="py-3 mono">
-                      {tx.direction === "in" ? "+" : "−"}
-                      {formatAmount(tx.amount)} {tx.symbol ?? ""}
-                    </td>
-                    <td className="py-3">
-                      <StatusBadge
-                        variant={
-                          tx.status === "completed" || tx.status === "delivered"
-                            ? "success"
-                            : tx.status === "failed"
-                              ? "destructive"
-                              : "warning"
-                        }
-                      >
-                        {tx.status}
-                      </StatusBadge>
-                    </td>
-                    <td className="py-3 text-xs text-muted-foreground">
-                      {formatTimestamp(tx.timestamp)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </GlassCard>
+      {history.isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+          ))}
+        </div>
+      ) : (
+        <BlockchainTimeline
+          entries={rows}
+          extraEvents={events}
+          emptyState={
+            query || filter !== "all"
+              ? "No activity matches these filters."
+              : "No on-chain activity yet — send a transaction to see it appear here."
+          }
+        />
+      )}
     </div>
   );
 }

@@ -14,20 +14,21 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SphereProvider } from "../lib/sphere/provider";
 import { AppShell } from "../components/layout/AppShell";
+import { AmbientBackground } from "../components/AmbientBackground";
 
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
+      <div className="glass max-w-md rounded-3xl px-8 py-12 text-center">
+        <h1 className="text-7xl font-bold text-gradient-primary">404</h1>
         <p className="mt-4 text-sm text-muted-foreground">
-          This route doesn't exist in the Unicity Dev Console.
+          This route doesn't exist in Unicity Pulse.
         </p>
         <Link
           to="/"
-          className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          className="mt-6 inline-flex items-center justify-center rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground glow-primary"
         >
-          Back to dashboard
+          Back to the Pulse
         </Link>
       </div>
     </div>
@@ -63,18 +64,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Unicity Dev Console" },
+      { title: "Unicity Pulse — Watch the blockchain breathe" },
       {
         name: "description",
         content:
-          "Developer console for exploring and interacting with the Unicity Testnet through the official Sphere SDK — playground, logs, explorer and network tools.",
+          "Unicity Pulse is an immersive visualization platform for the Unicity Testnet. Real blockchain data, premium motion design, analytics and the official Sphere SDK in one interactive experience.",
       },
-      { name: "author", content: "Unicity Dev Console" },
-      { property: "og:title", content: "Unicity Dev Console" },
+      { name: "author", content: "Unicity Pulse" },
+      { name: "theme-color", content: "#0a0a12" },
+      { property: "og:title", content: "Unicity Pulse — Watch the blockchain breathe" },
       {
         property: "og:description",
         content:
-          "Developer tools for the Unicity Testnet: SDK playground, request logs, blockchain explorer and Sphere Connect diagnostics.",
+          "An immersive visualization platform for the Unicity Testnet, built on the official Sphere SDK.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -122,9 +124,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <SphereProvider>
-        <AppShell>
-          <Outlet />
-        </AppShell>
+        <div className="dark relative min-h-screen">
+          <AmbientBackground />
+          <AppShell>
+            <Outlet />
+          </AppShell>
+        </div>
         <Toaster theme="dark" position="top-right" richColors />
       </SphereProvider>
     </QueryClientProvider>
