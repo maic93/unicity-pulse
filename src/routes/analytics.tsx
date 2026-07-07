@@ -4,7 +4,6 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   BarChart3,
-  Clock,
   Coins,
   Layers,
   TrendingUp,
