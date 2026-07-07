@@ -1,6 +1,6 @@
 {
-  "name": "unicity-dev-console",
-  "description": "A developer console for exploring and interacting with the Unicity Testnet using the official Sphere SDK.",
+  "name": "unicity-pulse",
+  "description": "Unicity Pulse — an immersive visualization platform for the Unicity Testnet built on the official Sphere SDK.",
   "private": true,
   "sideEffects": false,
   "type": "module",

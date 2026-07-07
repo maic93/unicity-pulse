@@ -386,4 +386,3 @@ function computeStats(history: HistoryEntry[]): Stats {
   };
 }
 // Silence unused import warning
-void Clock;
