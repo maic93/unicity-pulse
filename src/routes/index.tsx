@@ -265,6 +265,10 @@ function PulseHero() {
               active={isConnected}
               size={380}
               className="max-w-full"
+              pulseKey={pulseKey}
+              pulseTone={pulseTone}
+              pulseMode={pulseMode}
+              onClick={handleSphereClick}
             />
           </div>
         </div>
