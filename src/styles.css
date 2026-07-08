@@ -243,6 +243,39 @@
     opacity: 0;
   }
 }
+@keyframes sphere-ripple {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+@keyframes sphere-burst {
+  0% {
+    transform: translate(-50%, -50%) translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(var(--dx, 0), var(--dy, 0)) scale(0.2);
+    opacity: 0;
+  }
+}
+@keyframes sphere-flash {
+  0%, 100% { filter: brightness(1); }
+  30% { filter: brightness(1.6); }
+}
+.animate-sphere-ripple {
+  animation: sphere-ripple 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-sphere-burst {
+  animation: sphere-burst 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-sphere-flash {
+  animation: sphere-flash 1.2s ease-out;
+}
 
 @utility glass {
   background: linear-gradient(
