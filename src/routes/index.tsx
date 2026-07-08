@@ -108,6 +108,66 @@ function PulseHero() {
 
   const balanceNum = primary ? Number(primary.amount) : 0;
 
+  // ---- Reactive pulse triggers (new block, new tx, connect, balance change)
+  const [pulseKey, setPulseKey] = useState(0);
+  const [pulseTone, setPulseTone] = useState<"primary" | "secondary" | "success">("primary");
+  const bump = (tone: "primary" | "secondary" | "success") => {
+    setPulseTone(tone);
+    setPulseKey((k) => k + 1);
+  };
+  const prevBlock = useRef<number | null>(null);
+  const prevTxId = useRef<string | null>(null);
+  const prevBalance = useRef<number | null>(null);
+  const prevConnected = useRef<boolean>(false);
+  useEffect(() => {
+    if (blockHeight !== null && prevBlock.current !== null && blockHeight !== prevBlock.current) {
+      bump("secondary");
+    }
+    prevBlock.current = blockHeight;
+  }, [blockHeight]);
+  useEffect(() => {
+    const top = history.data?.[0];
+    const id = top ? `${top.hash ?? ""}-${top.timestamp ?? ""}` : null;
+    if (id && prevTxId.current !== null && id !== prevTxId.current) {
+      bump(top?.direction === "in" ? "success" : "primary");
+    }
+    prevTxId.current = id;
+  }, [history.data]);
+  useEffect(() => {
+    if (primary && prevBalance.current !== null && balanceNum !== prevBalance.current) {
+      bump("success");
+    }
+    prevBalance.current = primary ? balanceNum : null;
+  }, [balanceNum, primary]);
+  useEffect(() => {
+    if (isConnected && !prevConnected.current) bump("primary");
+    prevConnected.current = isConnected;
+  }, [isConnected]);
+
+  // ---- Easter egg: click sphere 5x → Pulse Mode
+  const [pulseMode, setPulseMode] = useState(false);
+  const clickCount = useRef(0);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleSphereClick = () => {
+    bump(pulseMode ? "secondary" : "primary");
+    clickCount.current += 1;
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    clickTimer.current = setTimeout(() => {
+      clickCount.current = 0;
+    }, 1500);
+    if (clickCount.current >= 5 && !pulseMode) {
+      setPulseMode(true);
+      clickCount.current = 0;
+      toast.success("Pulse Mode Activated", {
+        description: "The sphere burns brighter. Click again to disable.",
+      });
+    } else if (clickCount.current >= 5 && pulseMode) {
+      setPulseMode(false);
+      clickCount.current = 0;
+      toast("Pulse Mode disabled");
+    }
+  };
+
   const refreshAll = () => {
     void balances.refetch();
     void history.refetch();
