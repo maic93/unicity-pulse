@@ -2,16 +2,28 @@
  * Sphere SDK wrapper.
  *
  * All interaction with the Unicity Testnet goes through the official
- * `@unicitylabs/sphere-sdk` Connect protocol. This module is the ONLY
- * place in the app that touches the SDK — UI components consume the
- * `useSphere()` hook (see provider.tsx), never the SDK directly.
+ * `@unicitylabs/sphere-sdk` Connect protocol (Sphere Connect v2.1). This
+ * module is the ONLY place in the app that touches the SDK — UI components
+ * consume the `useSphere()` hook (see provider.tsx), never the SDK directly.
  *
- * Every SDK query, intent and lifecycle event is recorded in the
- * in-memory `sdkLog` so the /logs page can render a live timeline.
+ * Every SDK query, intent and lifecycle event is recorded in the in-memory
+ * `sdkLog` so the /logs page can render a live timeline.
  *
  * Connect protocol reference:
  *   https://github.com/unicity-sphere/sphere-sdk/blob/main/docs/CONNECT.md
  */
+
+import {
+  ALL_PERMISSIONS,
+  ERROR_CODES,
+  INTENT_ACTIONS,
+  RPC_METHODS,
+  SPHERE_NETWORKS,
+  WALLET_EVENTS,
+  type NetworkInfo,
+  type PermissionScope,
+  type PublicIdentity,
+} from "@unicitylabs/sphere-sdk/connect";
 
 import { sdkLog } from "./log";
 import type {
@@ -23,44 +35,237 @@ import type {
   SphereNetworkInfo,
 } from "./types";
 
-// Load the browser Connect entrypoint lazily so the module can be imported
-// from SSR contexts without hitting `window` at import time.
+export { GATEWAY_URL, getGatewayHealth, getLatestBlock } from "./gateway";
+
+/** Injected at build time from the installed @unicitylabs/sphere-sdk package. */
+declare const __SPHERE_SDK_VERSION__: string;
+
+export const SDK_PACKAGE = "@unicitylabs/sphere-sdk";
+export const SDK_VERSION: string =
+  typeof __SPHERE_SDK_VERSION__ === "string" ? __SPHERE_SDK_VERSION__ : "unknown";
+
+/** Sphere Connect protocol version this SDK build speaks. */
+export const CONNECT_PROTOCOL_VERSION = "2.1";
+
+/** Current Unicity Testnet, sourced from the SDK network registry. */
+export const TESTNET_NETWORK: NetworkInfo = SPHERE_NETWORKS.testnet2;
+
+/** Public Sphere wallet URL used for the popup transport fallback. */
+const SPHERE_WALLET_URL = "https://sphere.unicity.network";
+
+const SESSION_KEY = "sphere-connect:sessionId";
+
+/** Every scope the console can make use of; the wallet grants a subset. */
+const REQUESTED_PERMISSIONS = [...ALL_PERMISSIONS] as PermissionScope[];
+
+type ConnectClientLike = {
+  readonly isConnected: boolean;
+  readonly walletIdentity: PublicIdentity | null;
+  readonly walletNetwork: NetworkInfo | null;
+  readonly walletProtocol: string | null;
+  readonly walletLocked: boolean;
+  readonly permissions: readonly PermissionScope[];
+  query<T>(method: string, params?: Record<string, unknown>): Promise<T>;
+  intent<T>(action: string, params: Record<string, unknown>): Promise<T>;
+  disconnect(): Promise<void>;
+  on(event: string, handler: (data: unknown) => void): () => void;
+};
+
 type AutoConnectResultShape = {
-  client: {
-    isConnected: boolean;
-    walletIdentity: SphereIdentity | null;
-    walletNetwork: SphereNetworkInfo | null;
-    query<T>(method: string, params?: Record<string, unknown>): Promise<T>;
-    intent<T>(action: string, params: Record<string, unknown>): Promise<T>;
-    disconnect(): Promise<void>;
-    on(event: string, handler: (data: unknown) => void): () => void;
+  client: ConnectClientLike;
+  connection: {
+    sessionId: string;
+    permissions: readonly PermissionScope[];
+    identity: PublicIdentity;
+    locked?: boolean;
   };
-  connection: { sessionId: string };
   transport: string;
   disconnect: () => Promise<void>;
 };
 
-// Public Sphere wallet URL used for the popup transport fallback.
-const SPHERE_WALLET_URL = "https://sphere.unicity.network";
-
-// testnet2 is the current Unicity testnet (networkId 4).
-const TESTNET_NETWORK: SphereNetworkInfo = { id: 4, name: "testnet2" };
-
-const SESSION_KEY = "sphere-connect:sessionId";
-
-// Version of the SDK we depend on. Kept in sync with package.json manually
-// because pkg imports don't survive the SSR bundler cleanly.
-export const SDK_VERSION = "0.11.3";
-export const SDK_PACKAGE = "@unicitylabs/sphere-sdk";
-export const GATEWAY_URL = "https://gateway.testnet2.unicity.network";
-
 let active: AutoConnectResultShape | null = null;
 let connectingPromise: Promise<AutoConnectResultShape> | null = null;
 let connectedAt: number | null = null;
+let locked = false;
+
+/** Lifecycle notifications for the React provider. */
+export type SphereLifecycleEvent =
+  | { type: "locked" }
+  | { type: "unlocked"; identity: SphereIdentity | null }
+  | { type: "disconnected" }
+  | { type: "identityChanged"; identity: SphereIdentity | null }
+  | { type: "activity"; event: string; data: unknown };
+
+type LifecycleListener = (event: SphereLifecycleEvent) => void;
+const lifecycleListeners = new Set<LifecycleListener>();
+
+export function onSphereLifecycle(listener: LifecycleListener): () => void {
+  lifecycleListeners.add(listener);
+  return () => lifecycleListeners.delete(listener);
+}
+
+function emit(event: SphereLifecycleEvent) {
+  for (const l of lifecycleListeners) {
+    try {
+      l(event);
+    } catch {
+      /* listener errors must not break the SDK */
+    }
+  }
+}
+
+/** Wallet-pushed activity events the console listens to (auto-subscribed by the SDK). */
+const ACTIVITY_EVENTS = [
+  "transfer:incoming",
+  "transfer:outgoing",
+  "balance:changed",
+] as const;
+
+// --- error handling ----------------------------------------------------------
+
+function errorCode(err: unknown): number | null {
+  if (err && typeof err === "object" && "code" in err) {
+    const c = (err as { code: unknown }).code;
+    if (typeof c === "number") return c;
+  }
+  return null;
+}
+
+/** Turn any Connect / SDK failure into an actionable, user-facing message. */
+export function describeSphereError(err: unknown): string {
+  const code = errorCode(err);
+  const raw = err instanceof Error ? err.message : String(err);
+  switch (code) {
+    case ERROR_CODES.NOT_CONNECTED:
+      return "Not connected to a Sphere wallet. Connect first.";
+    case ERROR_CODES.PERMISSION_DENIED:
+      return "Your Sphere wallet did not grant the permission this action needs.";
+    case ERROR_CODES.USER_REJECTED:
+      return "Connection rejected in the Sphere wallet.";
+    case ERROR_CODES.SESSION_EXPIRED:
+      return "The wallet session expired. Reconnect to continue.";
+    case ERROR_CODES.ORIGIN_BLOCKED:
+      return "This origin is blocked by the Sphere wallet.";
+    case ERROR_CODES.RATE_LIMITED:
+      return "The wallet is rate-limiting requests. Try again shortly.";
+    case ERROR_CODES.UNSUPPORTED_PROTOCOL_VERSION:
+      return `Your Sphere wallet speaks an incompatible Connect version. This app uses Connect ${CONNECT_PROTOCOL_VERSION} (SDK v${SDK_VERSION}). Update Sphere.`;
+    case ERROR_CODES.INCOMPATIBLE_NETWORK:
+      return `Wrong network: switch your Sphere wallet to ${TESTNET_NETWORK.name} (id ${TESTNET_NETWORK.id}).`;
+    case ERROR_CODES.WALLET_LOCKED:
+      return "Your Sphere wallet is locked. Unlock it — the session stays alive.";
+    case ERROR_CODES.INSUFFICIENT_BALANCE:
+      return "Insufficient balance for this transfer.";
+    case ERROR_CODES.INVALID_RECIPIENT:
+      return "The wallet could not resolve that recipient.";
+    case ERROR_CODES.TRANSFER_FAILED:
+      return `Transfer failed: ${raw}`;
+    case ERROR_CODES.INTENT_CANCELLED:
+      return "Transaction rejected in the Sphere wallet.";
+    case ERROR_CODES.INTENT_OUTCOME_UNKNOWN:
+      return "Outcome unknown — the wallet lost track of this transfer. Do NOT retry; verify on-chain before resending.";
+    default:
+      break;
+  }
+  if (/timeout|timed out/i.test(raw)) {
+    return "Timed out waiting for the Sphere wallet. Make sure the wallet window is open and responsive.";
+  }
+  if (/popup|blocked|window\.open/i.test(raw)) {
+    return "The Sphere wallet window could not be opened. Allow pop-ups for this site, or install the Sphere extension.";
+  }
+  if (/no wallet|not installed|extension/i.test(raw)) {
+    return "No Sphere wallet detected. Install the Sphere extension or use the hosted wallet at sphere.unicity.network.";
+  }
+  return raw || "Unknown Sphere error";
+}
+
+function toErrorShape(err: unknown): {
+  message: string;
+  code?: number;
+  stack?: string;
+} {
+  const code = errorCode(err);
+  return {
+    message: describeSphereError(err),
+    ...(code !== null ? { code } : {}),
+    ...(err instanceof Error && err.stack ? { stack: err.stack } : {}),
+  };
+}
+
+// --- connection lifecycle ----------------------------------------------------
 
 async function loadAutoConnect() {
   const mod = await import("@unicitylabs/sphere-sdk/connect/browser");
   return mod.autoConnect;
+}
+
+function toIdentity(id: PublicIdentity | null | undefined): SphereIdentity | null {
+  if (!id) return null;
+  return {
+    chainPubkey: id.chainPubkey,
+    directAddress: id.directAddress,
+    nametag: id.nametag,
+  };
+}
+
+function wireEvents(result: AutoConnectResultShape) {
+  const bind = (event: string, handler: (data: unknown) => void) => {
+    try {
+      result.client.on(event, handler);
+    } catch {
+      /* wallet may not support this event */
+    }
+  };
+
+  bind(WALLET_EVENTS.LOCKED, (data) => {
+    locked = true;
+    sdkLog.event(WALLET_EVENTS.LOCKED, data);
+    emit({ type: "locked" });
+  });
+
+  bind(WALLET_EVENTS.UNLOCKED, (data) => {
+    locked = false;
+    sdkLog.event(WALLET_EVENTS.UNLOCKED, data);
+    const payload = data as { identity?: PublicIdentity } | undefined;
+    emit({
+      type: "unlocked",
+      identity: toIdentity(payload?.identity ?? result.client.walletIdentity),
+    });
+  });
+
+  bind(WALLET_EVENTS.DISCONNECTED, (data) => {
+    sdkLog.event(WALLET_EVENTS.DISCONNECTED, data);
+    clearSession();
+    emit({ type: "disconnected" });
+  });
+
+  bind(WALLET_EVENTS.IDENTITY_CHANGED, (data) => {
+    sdkLog.event(WALLET_EVENTS.IDENTITY_CHANGED, data);
+    emit({
+      type: "identityChanged",
+      identity: toIdentity(result.client.walletIdentity),
+    });
+  });
+
+  for (const ev of ACTIVITY_EVENTS) {
+    bind(ev, (data) => {
+      sdkLog.event(ev, data);
+      emit({ type: "activity", event: ev, data });
+    });
+  }
+}
+
+function clearSession() {
+  active = null;
+  connectedAt = null;
+  locked = false;
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.removeItem(SESSION_KEY);
+    } catch {
+      /* ignore */
+    }
+  }
 }
 
 async function doConnect(silent: boolean): Promise<AutoConnectResultShape> {
@@ -73,81 +278,92 @@ async function doConnect(silent: boolean): Promise<AutoConnectResultShape> {
   const entry = sdkLog.start({
     method: silent ? "sphere.reconnect" : "sphere.connect",
     kind: "connect",
-    params: { network: TESTNET_NETWORK, silent, hasSession: !!resumeSessionId },
+    params: {
+      network: TESTNET_NETWORK,
+      permissions: REQUESTED_PERMISSIONS,
+      silent,
+      hasSession: !!resumeSessionId,
+      sdkVersion: SDK_VERSION,
+      connectVersion: CONNECT_PROTOCOL_VERSION,
+    },
   });
 
   try {
     const result = (await autoConnect({
       dapp: {
-        name: "Unicity Dev Console",
-        description: "Developer console for the Unicity Testnet",
+        name: "Unicity Pulse",
+        description: "Live visualisation console for the Unicity Testnet",
         url: window.location.origin,
       },
       walletUrl: SPHERE_WALLET_URL,
       network: TESTNET_NETWORK,
+      permissions: REQUESTED_PERMISSIONS,
       resumeSessionId,
       silent,
     })) as unknown as AutoConnectResultShape;
 
     active = result;
     connectedAt = Date.now();
+    locked = !!(result.connection.locked ?? result.client.walletLocked);
 
-    // Forward wallet lifecycle events into the log for developer visibility.
-    for (const ev of ["identityChanged", "networkChanged", "locked", "disconnected"]) {
-      try {
-        result.client.on(ev, (data) => sdkLog.event(`wallet:${ev}`, data));
-      } catch {
-        /* not all events may be supported */
-      }
-    }
+    wireEvents(result);
 
     try {
       window.localStorage.setItem(SESSION_KEY, result.connection.sessionId);
     } catch {
       /* ignore storage failure */
     }
+
     sdkLog.finish(entry.id, {
       status: "ok",
       response: {
         transport: result.transport,
         sessionId: result.connection.sessionId,
+        permissions: result.connection.permissions,
         identity: result.client.walletIdentity,
         network: result.client.walletNetwork,
+        walletProtocol: result.client.walletProtocol,
+        locked,
       },
     });
     return result;
   } catch (err) {
-    sdkLog.finish(entry.id, {
-      status: "error",
-      error: toErrorShape(err),
-    });
+    sdkLog.finish(entry.id, { status: "error", error: toErrorShape(err) });
     throw err;
   }
 }
 
 export async function connectWallet(): Promise<SphereIdentity> {
   if (connectingPromise) await connectingPromise;
-  if (active?.client.isConnected) return active.client.walletIdentity!;
+  if (active?.client.isConnected) return toIdentity(active.client.walletIdentity)!;
   connectingPromise = doConnect(false);
   try {
     const r = await connectingPromise;
-    return r.client.walletIdentity!;
+    const identity = toIdentity(r.client.walletIdentity);
+    if (!identity) {
+      throw new Error("The wallet completed the handshake without an identity.");
+    }
+    return identity;
   } finally {
     connectingPromise = null;
   }
 }
 
-/** Silent reconnect using a persisted session id. Returns null when the
- * wallet has not previously approved this origin. */
+/**
+ * Silent reconnect using a persisted session id. Returns null when the wallet
+ * has not previously approved this origin (no UI is ever shown).
+ */
 export async function reconnectWallet(): Promise<SphereIdentity | null> {
   if (typeof window === "undefined") return null;
-  if (active?.client.isConnected) return active.client.walletIdentity;
+  if (active?.client.isConnected) return toIdentity(active.client.walletIdentity);
   const sessionId = window.localStorage.getItem(SESSION_KEY);
   if (!sessionId) return null;
   try {
     const r = await doConnect(true);
-    return r.client.walletIdentity;
+    return toIdentity(r.client.walletIdentity);
   } catch {
+    // A silent resume that fails simply means "not approved / session gone".
+    clearSession();
     return null;
   }
 }
@@ -160,24 +376,17 @@ export async function disconnectWallet(): Promise<void> {
   } catch (err) {
     sdkLog.finish(entry.id, { status: "error", error: toErrorShape(err) });
   } finally {
-    active = null;
-    connectedAt = null;
-    if (typeof window !== "undefined") {
-      try {
-        window.localStorage.removeItem(SESSION_KEY);
-      } catch {
-        /* ignore */
-      }
-    }
+    clearSession();
   }
 }
 
 export function getIdentitySync(): SphereIdentity | null {
-  return active?.client.walletIdentity ?? null;
+  return toIdentity(active?.client.walletIdentity ?? null);
 }
 
 export function getNetworkSync(): SphereNetworkInfo | null {
-  return active?.client.walletNetwork ?? null;
+  const n = active?.client.walletNetwork;
+  return n ? { id: n.id, name: n.name } : null;
 }
 
 export function getTransportSync(): string | null {
@@ -192,16 +401,37 @@ export function getConnectedAtSync(): number | null {
   return connectedAt;
 }
 
+export function getPermissionsSync(): string[] {
+  return [...(active?.client.permissions ?? [])];
+}
+
+export function getWalletProtocolSync(): string | null {
+  return active?.client.walletProtocol ?? null;
+}
+
+export function isLockedSync(): boolean {
+  return locked || !!active?.client.walletLocked;
+}
+
 export function isConnectedSync(): boolean {
   return !!active?.client.isConnected;
 }
 
-function requireClient() {
+/** True when the wallet's active network is not the network this dApp targets. */
+export function isNetworkMismatchSync(): boolean {
+  const n = active?.client.walletNetwork;
+  if (!n) return false;
+  return n.id !== TESTNET_NETWORK.id;
+}
+
+function requireClient(): ConnectClientLike {
   if (!active?.client.isConnected) {
     throw new Error("Wallet is not connected");
   }
   return active.client;
 }
+
+// --- logged RPC --------------------------------------------------------------
 
 async function loggedQuery<T>(
   method: string,
@@ -235,47 +465,50 @@ async function loggedIntent<T>(
   }
 }
 
+/** Every query method the current Connect protocol exposes. */
+export const CONNECT_RPC_METHODS = RPC_METHODS;
+/** Every intent action the current Connect protocol exposes. */
+export const CONNECT_INTENT_ACTIONS = INTENT_ACTIONS;
+
 export async function getIdentity(): Promise<SphereIdentity> {
-  return loggedQuery<SphereIdentity>("sphere_getIdentity");
+  const raw = await loggedQuery<PublicIdentity>(RPC_METHODS.GET_IDENTITY);
+  const identity = toIdentity(raw);
+  if (!identity) throw new Error("Wallet returned no identity");
+  return identity;
 }
 
-/** Fetch balances. The SDK returns provider-specific shapes; we normalise. */
+/** Fetch balances. The wallet returns provider-specific shapes; we normalise. */
 export async function getBalances(): Promise<CoinBalance[]> {
-  const raw = await loggedQuery<unknown>("sphere_getBalance");
+  const raw = await loggedQuery<unknown>(RPC_METHODS.GET_BALANCE);
   return normaliseBalances(raw);
 }
 
+export async function getAssets(): Promise<unknown> {
+  return loggedQuery<unknown>(RPC_METHODS.GET_ASSETS);
+}
+
+export async function getTokens(): Promise<unknown> {
+  return loggedQuery<unknown>(RPC_METHODS.GET_TOKENS);
+}
+
 export async function getHistory(): Promise<HistoryEntry[]> {
-  const raw = await loggedQuery<unknown>("sphere_getHistory", { limit: 100 });
+  const raw = await loggedQuery<unknown>(RPC_METHODS.GET_HISTORY, { limit: 100 });
   return normaliseHistory(raw);
 }
 
-export async function getNetworkStatus(): Promise<unknown> {
-  return loggedQuery<unknown>("sphere_getNetwork");
-}
-
-export async function getLatestBlock(): Promise<unknown> {
-  // The exact RPC name is provider-specific; we try common ones and
-  // return the first non-null response for the developer to inspect.
-  const candidates = ["sphere_getLatestBlock", "sphere_getBlock", "sphere_getChainTip"];
-  let lastError: unknown = null;
-  for (const m of candidates) {
-    try {
-      return await loggedQuery<unknown>(m);
-    } catch (err) {
-      lastError = err;
-    }
-  }
-  throw lastError ?? new Error("No block RPC available on this provider");
+/** Resolve a nametag / address to a chain identity via the wallet. */
+export async function resolvePeer(query: string): Promise<unknown> {
+  return loggedQuery<unknown>(RPC_METHODS.RESOLVE, { query });
 }
 
 export async function sendTokens(params: SendParams): Promise<SendResult> {
-  return loggedIntent<SendResult>("send", {
+  const raw = await loggedIntent<unknown>(INTENT_ACTIONS.SEND, {
     recipient: params.recipient,
     amount: params.amount,
     coinId: params.coinId,
     ...(params.memo ? { memo: params.memo } : {}),
   });
+  return normaliseSendResult(raw);
 }
 
 /** Raw playground call: developer-supplied method + params. */
@@ -293,7 +526,7 @@ export async function rawIntent(
   return loggedIntent<unknown>(action, params);
 }
 
-/** Subscribe to wallet events (identity change, lock). Returns unsubscribe. */
+/** Subscribe to a wallet event (the SDK auto-subscribes on the wire). */
 export function onWalletEvent(
   event: string,
   handler: (data: unknown) => void,
@@ -302,12 +535,25 @@ export function onWalletEvent(
   return active.client.on(event, handler);
 }
 
-function toErrorShape(err: unknown): { message: string; stack?: string } {
-  if (err instanceof Error) return { message: err.message, stack: err.stack };
-  return { message: String(err) };
-}
-
 // --- normalisation helpers ---------------------------------------------------
+
+function normaliseSendResult(raw: unknown): SendResult {
+  if (!raw || typeof raw !== "object") {
+    return { status: "submitted" };
+  }
+  const o = raw as Record<string, unknown>;
+  const status = String(o.status ?? (o.success === false ? "failed" : "submitted"));
+  return {
+    status,
+    transferId: (o.transferId ?? o.id ?? o.txId ?? o.hash) as string | undefined,
+    deliveryPending:
+      typeof o.deliveryPending === "boolean" ? o.deliveryPending : undefined,
+    recipient: o.recipient as string | undefined,
+    amount: o.amount !== undefined ? String(o.amount) : undefined,
+    coinId: o.coinId as string | undefined,
+    raw,
+  };
+}
 
 function normaliseBalances(raw: unknown): CoinBalance[] {
   if (!raw) return [];
@@ -316,21 +562,21 @@ function normaliseBalances(raw: unknown): CoinBalance[] {
   }
   if (typeof raw === "object") {
     const obj = raw as Record<string, unknown>;
-    if (Array.isArray(obj.coins)) {
-      return (obj.coins as unknown[])
-        .map(coerceBalance)
-        .filter((b): b is CoinBalance => !!b);
-    }
-    if (Array.isArray(obj.balances)) {
-      return (obj.balances as unknown[])
-        .map(coerceBalance)
-        .filter((b): b is CoinBalance => !!b);
+    for (const key of ["coins", "balances", "assets"]) {
+      if (Array.isArray(obj[key])) {
+        return (obj[key] as unknown[])
+          .map(coerceBalance)
+          .filter((b): b is CoinBalance => !!b);
+      }
     }
     // symbol -> amount map
     const out: CoinBalance[] = [];
     for (const [symbol, amount] of Object.entries(obj)) {
       if (typeof amount === "string" || typeof amount === "number") {
         out.push({ coinId: symbol, symbol, amount: String(amount) });
+      } else if (amount && typeof amount === "object") {
+        const coerced = coerceBalance({ symbol, ...(amount as object) });
+        if (coerced) out.push(coerced);
       }
     }
     return out;
@@ -341,8 +587,10 @@ function normaliseBalances(raw: unknown): CoinBalance[] {
 function coerceBalance(v: unknown): CoinBalance | null {
   if (!v || typeof v !== "object") return null;
   const o = v as Record<string, unknown>;
-  const symbol = (o.symbol ?? o.coinId ?? o.id ?? o.coin) as string | undefined;
-  const amount = (o.amount ?? o.balance ?? o.value) as
+  const symbol = (o.symbol ?? o.coinId ?? o.id ?? o.coin ?? o.name) as
+    | string
+    | undefined;
+  const amount = (o.amount ?? o.balance ?? o.value ?? o.total) as
     | string
     | number
     | undefined;
