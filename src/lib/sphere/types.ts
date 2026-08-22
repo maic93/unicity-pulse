@@ -41,8 +41,15 @@ export interface SendParams {
   memo?: string;
 }
 
+/** Result of an `intent:send`, as returned by the current Sphere wallet. */
 export interface SendResult {
+  /** pending | submitted | completed | failed | rejected — wallet-reported. */
   status: string;
   transferId?: string;
   deliveryPending?: boolean;
+  recipient?: string;
+  amount?: string;
+  coinId?: string;
+  /** Untouched wallet payload, shown in the confirmation panel. */
+  raw?: unknown;
 }
