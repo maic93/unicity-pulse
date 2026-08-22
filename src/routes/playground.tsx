@@ -17,11 +17,13 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  getAssets,
   getBalances,
+  getGatewayHealth,
   getHistory,
   getIdentity,
   getLatestBlock,
-  getNetworkStatus,
+  getTokens,
   rawIntent,
   rawQuery,
   sendTokens,
