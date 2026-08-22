@@ -17,11 +17,13 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  getAssets,
   getBalances,
+  getGatewayHealth,
   getHistory,
   getIdentity,
   getLatestBlock,
-  getNetworkStatus,
+  getTokens,
   rawIntent,
   rawQuery,
   sendTokens,
@@ -75,28 +77,40 @@ const PRESETS: Preset[] = [
     run: () => getHistory(),
   },
   {
-    key: "getNetwork",
-    label: "Get network status",
-    description: "sphere_getNetwork — network handshake info",
-    run: () => getNetworkStatus(),
+    key: "getAssets",
+    label: "Get assets",
+    description: "sphere_getAssets — wallet asset breakdown",
+    run: () => getAssets(),
+  },
+  {
+    key: "getTokens",
+    label: "Get tokens",
+    description: "sphere_getTokens — raw token list",
+    run: () => getTokens(),
+  },
+  {
+    key: "gatewayHealth",
+    label: "Gateway health",
+    description: "testnet2 gateway /health — aggregator status + latency",
+    run: () => getGatewayHealth(),
   },
   {
     key: "getLatestBlock",
     label: "Get latest block",
-    description: "sphere_getLatestBlock (best-effort across providers)",
+    description: "testnet2 gateway get_block_height across all 8 shards",
     run: () => getLatestBlock(),
   },
   {
     key: "walletInfo",
     label: "Get wallet information",
-    description: "Composite: identity + balance + network",
+    description: "Composite: identity + balance + gateway health",
     run: async () => {
-      const [id, balance, network] = await Promise.all([
+      const [id, balance, gateway] = await Promise.all([
         getIdentity(),
         getBalances(),
-        getNetworkStatus().catch((e) => ({ error: String(e) })),
+        getGatewayHealth().catch((e: unknown) => ({ error: String(e) })),
       ]);
-      return { identity: id, balance, network };
+      return { identity: id, balance, gateway };
     },
   },
   {

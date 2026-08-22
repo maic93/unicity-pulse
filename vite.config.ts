@@ -4,12 +4,35 @@
 //     componentTagger (dev-only), VITE_* env injection, @ path alias, React/TanStack dedupe,
 //     error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+
+// Read the ACTUAL installed Sphere SDK version so the UI never hardcodes one.
+const sphereSdkVersion: string = (
+  JSON.parse(
+    readFileSync(
+      fileURLToPath(
+        new URL(
+          "./node_modules/@unicitylabs/sphere-sdk/package.json",
+          import.meta.url,
+        ),
+      ),
+      "utf8",
+    ),
+  ) as { version: string }
+).version;
 
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  vite: {
+    define: {
+      __SPHERE_SDK_VERSION__: JSON.stringify(sphereSdkVersion),
+    },
   },
 });
