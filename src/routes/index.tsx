@@ -279,6 +279,26 @@ function PulseHero() {
           )}
         </div>
 
+        {isConnected && isLocked && (
+          <div className="mb-4 rounded-2xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning-foreground">
+            <span className="font-medium">Sphere wallet is locked.</span>{" "}
+            Unlock it in the wallet — your session stays alive and queries resume
+            automatically.
+          </div>
+        )}
+        {isConnected && isNetworkMismatch && (
+          <div className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <span className="font-medium">Wrong network.</span> Your wallet
+            reports{" "}
+            <span className="mono">{network?.name ?? `id ${network?.id}`}</span>{" "}
+            — Unicity Pulse targets{" "}
+            <span className="mono">
+              {TESTNET_NETWORK.name} (id {TESTNET_NETWORK.id})
+            </span>
+            .
+          </div>
+        )}
+
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <PulseStat
             icon={<Radio className="h-4 w-4" />}
