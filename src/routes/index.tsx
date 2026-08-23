@@ -419,12 +419,16 @@ function PulseHero() {
             icon={<Network className="h-4 w-4" />}
             label="Network"
             value={
-              <span className="mono">
-                {network?.name ?? "testnet2"}
+              <span className={isNetworkMismatch ? "mono text-destructive" : "mono"}>
+                {network?.name ?? TESTNET_NETWORK.name}
               </span>
             }
-            hint={`id ${network?.id ?? 4} · ${GATEWAY_URL.replace(/^https?:\/\//, "")}`}
-            tone="secondary"
+            hint={
+              isNetworkMismatch
+                ? `wrong network · expected ${TESTNET_NETWORK.name}`
+                : `id ${network?.id ?? TESTNET_NETWORK.id} · ${GATEWAY_URL.replace(/^https?:\/\//, "")}`
+            }
+            tone={isNetworkMismatch ? "neutral" : "secondary"}
           />
           <PulseStat
             icon={<Package className="h-4 w-4" />}
