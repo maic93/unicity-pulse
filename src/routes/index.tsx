@@ -24,12 +24,18 @@ import { PulseSphere } from "@/components/PulseSphere";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useBalances, useHistory, useSphere } from "@/lib/sphere/provider";
+import {
+  useBalances,
+  useGatewayHealth,
+  useHistory,
+  useLatestBlock,
+  useSphere,
+} from "@/lib/sphere/provider";
 import {
   GATEWAY_URL,
   SDK_PACKAGE,
   SDK_VERSION,
-  getLatestBlock,
+  TESTNET_NETWORK,
 } from "@/lib/sphere/client";
 import { formatRelative, shortAddress } from "@/lib/format";
 
