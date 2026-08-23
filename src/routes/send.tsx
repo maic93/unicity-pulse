@@ -1,5 +1,5 @@
 import { createFileRoute, ClientOnly } from "@tanstack/react-router";
-import { Send } from "lucide-react";
+import { CheckCircle2, Loader2, Send, XCircle } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -24,9 +24,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { JsonViewer } from "@/components/JsonViewer";
+import { describeSphereError } from "@/lib/sphere/client";
 import {
   useBalances,
   useSendTokens,
+  useSphere,
 } from "@/lib/sphere/provider";
 
 const sendSchema = z.object({
@@ -73,6 +76,7 @@ function SendPage() {
 function SendView() {
   const balances = useBalances();
   const send = useSendTokens();
+  const { isLocked, isNetworkMismatch } = useSphere();
   const [form, setForm] = useState<FormState>({
     recipient: "",
     amount: "",
@@ -265,7 +269,7 @@ function SendView() {
                 </p>
               )}
               {send.data?.raw !== undefined && (
-                <JsonViewer data={send.data.raw} collapsed />
+                <JsonViewer value={send.data.raw} maxHeight={220} filename="transfer.json" />
               )}
             </div>
           </div>
