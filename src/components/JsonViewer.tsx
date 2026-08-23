@@ -65,14 +65,8 @@ export function JsonViewer({
         </div>
       </div>
       {!collapsed && (
-        <pre
-          className="mono overflow-auto p-3 text-xs leading-relaxed"
-          style={{ maxHeight }}
-        >
-          <code
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: highlight(text) }}
-          />
+        <pre className="mono overflow-auto p-3 text-xs leading-relaxed" style={{ maxHeight }}>
+          <code dangerouslySetInnerHTML={{ __html: highlight(text) }} />
         </pre>
       )}
     </div>
@@ -81,11 +75,7 @@ export function JsonViewer({
 
 function safeStringify(value: unknown): string {
   try {
-    return JSON.stringify(
-      value,
-      (_k, v) => (typeof v === "bigint" ? v.toString() : v),
-      2,
-    );
+    return JSON.stringify(value, (_k, v) => (typeof v === "bigint" ? v.toString() : v), 2);
   } catch {
     return String(value);
   }
@@ -105,10 +95,7 @@ function downloadJson(name: string, text: string) {
 }
 
 function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 /** Very small JSON syntax highlighter using semantic token classes. */

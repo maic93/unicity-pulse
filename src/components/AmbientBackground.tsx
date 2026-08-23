@@ -35,24 +35,21 @@ export function AmbientBackground() {
       <div
         className="absolute -left-40 top-10 h-[520px] w-[520px] rounded-full blur-3xl"
         style={{
-          background:
-            "radial-gradient(circle, oklch(0.74 0.19 45 / 0.28), transparent 70%)",
+          background: "radial-gradient(circle, oklch(0.74 0.19 45 / 0.28), transparent 70%)",
           animation: "pulse-drift 14s ease-in-out infinite",
         }}
       />
       <div
         className="absolute -right-40 top-40 h-[560px] w-[560px] rounded-full blur-3xl"
         style={{
-          background:
-            "radial-gradient(circle, oklch(0.68 0.19 245 / 0.24), transparent 70%)",
+          background: "radial-gradient(circle, oklch(0.68 0.19 245 / 0.24), transparent 70%)",
           animation: "pulse-drift-b 18s ease-in-out infinite",
         }}
       />
       <div
         className="absolute bottom-[-200px] left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full blur-3xl"
         style={{
-          background:
-            "radial-gradient(circle, oklch(0.5 0.15 280 / 0.22), transparent 70%)",
+          background: "radial-gradient(circle, oklch(0.5 0.15 280 / 0.22), transparent 70%)",
           animation: "pulse-drift 22s ease-in-out infinite",
         }}
       />
@@ -64,8 +61,7 @@ export function AmbientBackground() {
             "linear-gradient(oklch(1 0 0 / 0.6) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 0.6) 1px, transparent 1px)",
           backgroundSize: "60px 60px",
           animation: "grid-slide 40s linear infinite",
-          maskImage:
-            "radial-gradient(ellipse at 50% 40%, black 30%, transparent 80%)",
+          maskImage: "radial-gradient(ellipse at 50% 40%, black 30%, transparent 80%)",
         }}
       />
       {/* Particles */}
@@ -77,10 +73,7 @@ export function AmbientBackground() {
             left: `${p.left}%`,
             width: `${p.size}px`,
             height: `${p.size}px`,
-            background:
-              p.id % 3 === 0
-                ? "oklch(0.74 0.19 45 / 0.9)"
-                : "oklch(0.85 0.02 260 / 0.7)",
+            background: p.id % 3 === 0 ? "oklch(0.74 0.19 45 / 0.9)" : "oklch(0.85 0.02 260 / 0.7)",
             boxShadow:
               p.id % 3 === 0
                 ? "0 0 8px oklch(0.74 0.19 45 / 0.9)"

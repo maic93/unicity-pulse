@@ -91,13 +91,10 @@ function TimelineView() {
         <p className="mono text-[11px] uppercase tracking-[0.25em] text-secondary">
           Blockchain timeline
         </p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-          Every heartbeat, in order.
-        </h1>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight">Every heartbeat, in order.</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Real transactions retrieved via <code className="mono">sphere_getHistory</code>{" "}
-          on the Unicity Testnet, interleaved with wallet lifecycle events from
-          the live SDK log.
+          Real transactions retrieved via <code className="mono">sphere_getHistory</code> on the
+          Unicity Testnet, interleaved with wallet lifecycle events from the live SDK log.
         </p>
       </div>
 

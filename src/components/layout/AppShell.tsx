@@ -74,11 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </p>
               <div className="space-y-0.5">
                 {group.items.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    item={item}
-                    active={isActive(pathname, item.to)}
-                  />
+                  <NavLink key={item.to} item={item} active={isActive(pathname, item.to)} />
                 ))}
               </div>
             </div>
@@ -140,15 +136,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               </span>
               Live · testnet2
             </span>
-            <span className="text-sm text-muted-foreground">
-              Watch the blockchain breathe
-            </span>
+            <span className="text-sm text-muted-foreground">Watch the blockchain breathe</span>
           </div>
           <WalletButton />
         </header>
-        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10">
-          {children}
-        </main>
+        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10">{children}</main>
       </div>
     </div>
   );

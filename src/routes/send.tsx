@@ -1,5 +1,5 @@
 import { createFileRoute, ClientOnly } from "@tanstack/react-router";
-import { Send } from "lucide-react";
+import { CheckCircle2, Loader2, Send, XCircle } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -24,10 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  useBalances,
-  useSendTokens,
-} from "@/lib/sphere/provider";
+import { JsonViewer } from "@/components/JsonViewer";
+import { describeSphereError } from "@/lib/sphere/client";
+import { useBalances, useSendTokens, useSphere } from "@/lib/sphere/provider";
 
 const sendSchema = z.object({
   recipient: z
@@ -36,8 +35,7 @@ const sendSchema = z.object({
     .min(1, "Recipient is required")
     .max(200)
     .refine(
-      (v) =>
-        v.startsWith("@") || /^[0-9a-fA-F]{20,}$/.test(v) || v.includes(":"),
+      (v) => v.startsWith("@") || /^[0-9a-fA-F]{20,}$/.test(v) || v.includes(":"),
       "Enter a Sphere nametag (@name), address, or public key",
     ),
   amount: z
@@ -73,15 +71,14 @@ function SendPage() {
 function SendView() {
   const balances = useBalances();
   const send = useSendTokens();
+  const { isLocked, isNetworkMismatch } = useSphere();
   const [form, setForm] = useState<FormState>({
     recipient: "",
     amount: "",
     coinId: "",
     memo: "",
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>(
-    {},
-  );
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [confirm, setConfirm] = useState(false);
 
   const coins = balances.data ?? [];
@@ -146,9 +143,7 @@ function SendView() {
               id="recipient"
               placeholder="@alice or public key"
               value={form.recipient}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, recipient: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, recipient: e.target.value }))}
               autoComplete="off"
             />
             {errors.recipient && (
@@ -164,13 +159,9 @@ function SendView() {
                 inputMode="decimal"
                 placeholder="0.00"
                 value={form.amount}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, amount: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
               />
-              {errors.amount && (
-                <p className="mt-1 text-xs text-destructive">{errors.amount}</p>
-              )}
+              {errors.amount && <p className="mt-1 text-xs text-destructive">{errors.amount}</p>}
             </div>
             <div>
               <Label>Token</Label>
@@ -188,9 +179,7 @@ function SendView() {
                       {c.symbol}
                     </SelectItem>
                   ))}
-                  {coins.length === 0 && (
-                    <SelectItem value="UCT">UCT</SelectItem>
-                  )}
+                  {coins.length === 0 && <SelectItem value="UCT">UCT</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
@@ -218,13 +207,59 @@ function SendView() {
           <Button
             type="submit"
             className="w-full gap-2"
-            disabled={send.isPending}
+            disabled={send.isPending || isLocked || isNetworkMismatch}
           >
             <Send className="h-4 w-4" />
-            {send.isPending ? "Awaiting wallet…" : "Review & send"}
+            {isLocked
+              ? "Wallet locked"
+              : isNetworkMismatch
+                ? "Wrong network"
+                : send.isPending
+                  ? "Awaiting wallet approval…"
+                  : "Review & send"}
           </Button>
         </form>
       </GlassCard>
+
+      {(send.isPending || send.data || send.error) && (
+        <GlassCard>
+          <div className="flex items-start gap-3">
+            {send.isPending ? (
+              <Loader2 className="mt-0.5 h-4 w-4 animate-spin text-secondary" />
+            ) : send.error ? (
+              <XCircle className="mt-0.5 h-4 w-4 text-destructive" />
+            ) : (
+              <CheckCircle2 className="mt-0.5 h-4 w-4 text-success" />
+            )}
+            <div className="min-w-0 flex-1 space-y-2">
+              <p className="text-sm font-medium">
+                {send.isPending
+                  ? "Pending approval in Sphere wallet"
+                  : send.error
+                    ? "Transfer failed"
+                    : `Transfer ${send.data?.status ?? "submitted"}`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {send.isPending
+                  ? "Approve or reject the intent in your wallet. This console waits for the wallet's response."
+                  : send.error
+                    ? describeSphereError(send.error)
+                    : send.data?.deliveryPending
+                      ? "Signed and submitted — delivery to the recipient is still pending."
+                      : "Signed and submitted to Unicity testnet2."}
+              </p>
+              {send.data?.transferId && (
+                <p className="mono break-all text-xs text-muted-foreground">
+                  transferId: {send.data.transferId}
+                </p>
+              )}
+              {send.data?.raw !== undefined && (
+                <JsonViewer value={send.data.raw} maxHeight={220} filename="transfer.json" />
+              )}
+            </div>
+          </div>
+        </GlassCard>
+      )}
 
       <Dialog open={confirm} onOpenChange={setConfirm}>
         <DialogContent>
@@ -236,11 +271,7 @@ function SendView() {
           </DialogHeader>
           <dl className="space-y-2 text-sm">
             <Row label="Recipient" value={form.recipient} mono />
-            <Row
-              label="Amount"
-              value={`${form.amount} ${activeCoin?.symbol ?? ""}`}
-              mono
-            />
+            <Row label="Amount" value={`${form.amount} ${activeCoin?.symbol ?? ""}`} mono />
             {form.memo && <Row label="Memo" value={form.memo} />}
             <Row label="Network" value="Unicity testnet2" />
           </dl>
@@ -258,21 +289,11 @@ function SendView() {
   );
 }
 
-function Row({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
+function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className={mono ? "mono max-w-[60%] break-all text-right" : "text-right"}>
-        {value}
-      </dd>
+      <dd className={mono ? "mono max-w-[60%] break-all text-right" : "text-right"}>{value}</dd>
     </div>
   );
 }

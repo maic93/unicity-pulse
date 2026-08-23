@@ -69,9 +69,8 @@ function AnalyticsView() {
           Read the rhythm of your wallet.
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Every metric is derived from real{" "}
-          <code className="mono">sphere_getHistory</code> data on the Unicity
-          Testnet.
+          Every metric is derived from real <code className="mono">sphere_getHistory</code> data on
+          the Unicity Testnet.
         </p>
       </div>
 
@@ -87,10 +86,7 @@ function AnalyticsView() {
           label="Total volume"
           icon={<Coins className="h-4 w-4" />}
           value={
-            <AnimatedCounter
-              value={stats.totalVolume}
-              decimals={stats.totalVolume < 100 ? 2 : 0}
-            />
+            <AnimatedCounter value={stats.totalVolume} decimals={stats.totalVolume < 100 ? 2 : 0} />
           }
           hint="base units"
           tone="secondary"
@@ -98,30 +94,20 @@ function AnalyticsView() {
         <InsightCard
           label="Average transfer"
           icon={<BarChart3 className="h-4 w-4" />}
-          value={
-            <AnimatedCounter value={stats.average} decimals={2} />
-          }
+          value={<AnimatedCounter value={stats.average} decimals={2} />}
           hint="mean amount"
           tone="warning"
         />
         <InsightCard
           label="Largest transfer"
           icon={<TrendingUp className="h-4 w-4" />}
-          value={
-            <AnimatedCounter
-              value={stats.largest}
-              decimals={stats.largest < 100 ? 2 : 0}
-            />
-          }
+          value={<AnimatedCounter value={stats.largest} decimals={stats.largest < 100 ? 2 : 0} />}
           hint="peak activity"
           tone="success"
         />
       </div>
 
-      <GlassCard
-        title="Cumulative volume"
-        description="Running total across your history"
-      >
+      <GlassCard title="Cumulative volume" description="Running total across your history">
         {entries.length === 0 ? (
           <Empty />
         ) : (
@@ -168,10 +154,7 @@ function AnalyticsView() {
       </GlassCard>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <GlassCard
-          title="Hourly cadence"
-          description="When your wallet is most active"
-        >
+        <GlassCard title="Hourly cadence" description="When your wallet is most active">
           {entries.length === 0 ? (
             <Empty />
           ) : (
@@ -200,20 +183,13 @@ function AnalyticsView() {
                       fontSize: 12,
                     }}
                   />
-                  <Bar
-                    dataKey="count"
-                    fill="oklch(0.68 0.19 245)"
-                    radius={[4, 4, 0, 0]}
-                  />
+                  <Bar dataKey="count" fill="oklch(0.68 0.19 245)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           )}
         </GlassCard>
-        <GlassCard
-          title="Flow breakdown"
-          description="Incoming vs outgoing volume"
-        >
+        <GlassCard title="Flow breakdown" description="Incoming vs outgoing volume">
           <div className="space-y-4">
             <FlowRow
               label="Incoming"
@@ -233,17 +209,13 @@ function AnalyticsView() {
             />
             <div className="grid grid-cols-2 gap-3 pt-2 text-xs text-muted-foreground">
               <div className="rounded-xl border border-border/60 bg-card/40 p-3">
-                <p className="mono text-[10px] uppercase tracking-widest">
-                  Active days
-                </p>
+                <p className="mono text-[10px] uppercase tracking-widest">Active days</p>
                 <p className="mt-1 text-lg text-foreground">
                   <AnimatedCounter value={stats.activeDays} />
                 </p>
               </div>
               <div className="rounded-xl border border-border/60 bg-card/40 p-3">
-                <p className="mono text-[10px] uppercase tracking-widest">
-                  Peak hour
-                </p>
+                <p className="mono text-[10px] uppercase tracking-widest">Peak hour</p>
                 <p className="mono mt-1 text-lg text-foreground">
                   {stats.mostActiveHour !== null
                     ? `${stats.mostActiveHour.toString().padStart(2, "0")}:00`
@@ -281,13 +253,9 @@ function FlowRow({
     <div>
       <div className="flex items-center justify-between text-sm">
         <span className="inline-flex items-center gap-2">
-          <span className={"grid h-7 w-7 place-items-center rounded-lg " + chipClass}>
-            {icon}
-          </span>
+          <span className={"grid h-7 w-7 place-items-center rounded-lg " + chipClass}>{icon}</span>
           {label}
-          <span className="mono text-[11px] text-muted-foreground">
-            · {count} tx
-          </span>
+          <span className="mono text-[11px] text-muted-foreground">· {count} tx</span>
         </span>
         <span className="mono text-base font-semibold">
           <AnimatedCounter value={value} decimals={value < 100 ? 2 : 0} />
@@ -362,10 +330,7 @@ function computeStats(history: HistoryEntry[]): Stats {
   const total = history.length;
   const totalVolume = incomingVolume + outgoingVolume;
   const mostActiveHour = total
-    ? hours.reduce(
-        (best, cur, i) => (cur > (hours[best] ?? -1) ? i : best),
-        0,
-      )
+    ? hours.reduce((best, cur, i) => (cur > (hours[best] ?? -1) ? i : best), 0)
     : null;
   return {
     total,

@@ -190,9 +190,7 @@ export function SphereProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return (
-    <SphereContext.Provider value={value}>{children}</SphereContext.Provider>
-  );
+  return <SphereContext.Provider value={value}>{children}</SphereContext.Provider>;
 }
 
 export function useSphere(): SphereContextValue {

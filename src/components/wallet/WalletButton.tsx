@@ -6,8 +6,7 @@ import { useSphere } from "@/lib/sphere/provider";
 import { shortAddress } from "@/lib/format";
 
 export function WalletButton() {
-  const { identity, isConnected, isConnecting, connect, disconnect } =
-    useSphere();
+  const { identity, isConnected, isConnecting, connect, disconnect } = useSphere();
 
   if (!isConnected) {
     return (
@@ -24,8 +23,7 @@ export function WalletButton() {
     );
   }
 
-  const address =
-    identity?.nametag ?? identity?.directAddress ?? identity?.chainPubkey ?? "";
+  const address = identity?.nametag ?? identity?.directAddress ?? identity?.chainPubkey ?? "";
 
   return (
     <div className="flex items-center gap-2">
@@ -42,12 +40,7 @@ export function WalletButton() {
         {shortAddress(address)}
         <Copy className="h-3.5 w-3.5 text-muted-foreground" />
       </button>
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => void disconnect()}
-        title="Disconnect"
-      >
+      <Button variant="outline" size="icon" onClick={() => void disconnect()} title="Disconnect">
         <LogOut className="h-4 w-4" />
       </Button>
     </div>

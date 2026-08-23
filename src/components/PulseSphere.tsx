@@ -101,9 +101,7 @@ export function PulseSphere({
 
   return (
     <div
-      className={
-        "relative grid place-items-center select-none " + (className ?? "")
-      }
+      className={"relative grid place-items-center select-none " + (className ?? "")}
       {...containerProps}
     >
       {/* Reactive ripples */}
@@ -145,16 +143,14 @@ export function PulseSphere({
       <div
         className="absolute inset-0 rounded-full animate-glow-ring"
         style={{
-          background:
-            "radial-gradient(circle, oklch(0.74 0.19 45 / 0.35), transparent 60%)",
+          background: "radial-gradient(circle, oklch(0.74 0.19 45 / 0.35), transparent 60%)",
           transform: `scale(${ringScale})`,
         }}
       />
       <div
         className="absolute inset-6 rounded-full animate-glow-ring"
         style={{
-          background:
-            "radial-gradient(circle, oklch(0.68 0.19 245 / 0.28), transparent 60%)",
+          background: "radial-gradient(circle, oklch(0.68 0.19 245 / 0.28), transparent 60%)",
           animationDelay: "1.2s",
         }}
       />
@@ -162,8 +158,7 @@ export function PulseSphere({
         <div
           className="absolute -inset-6 rounded-full animate-glow-ring"
           style={{
-            background:
-              "radial-gradient(circle, oklch(0.9 0.19 60 / 0.25), transparent 65%)",
+            background: "radial-gradient(circle, oklch(0.9 0.19 60 / 0.25), transparent 65%)",
             animationDuration: "3s",
           }}
         />
@@ -235,11 +230,7 @@ export function PulseSphere({
                 cy="0"
                 rx={Math.max(2, Math.abs(Math.cos((deg * Math.PI) / 180) * 99))}
                 ry="99"
-                stroke={
-                  active
-                    ? "oklch(0.95 0.15 55 / 0.35)"
-                    : "oklch(0.85 0.05 260 / 0.2)"
-                }
+                stroke={active ? "oklch(0.95 0.15 55 / 0.35)" : "oklch(0.85 0.05 260 / 0.2)"}
               />
             ))}
             {latitudes.map((deg) => {
@@ -252,11 +243,7 @@ export function PulseSphere({
                   cy={y}
                   rx={r}
                   ry={r * 0.15}
-                  stroke={
-                    active
-                      ? "oklch(0.68 0.19 245 / 0.4)"
-                      : "oklch(0.85 0.05 260 / 0.2)"
-                  }
+                  stroke={active ? "oklch(0.68 0.19 245 / 0.4)" : "oklch(0.85 0.05 260 / 0.2)"}
                 />
               );
             })}
@@ -302,10 +289,7 @@ export function PulseSphere({
         />
       </div>
       {pulseMode && (
-        <div
-          className="absolute inset-8 animate-sphere-rotate"
-          style={{ animationDuration: "6s" }}
-        >
+        <div className="absolute inset-8 animate-sphere-rotate" style={{ animationDuration: "6s" }}>
           <span
             className="absolute left-1/2 top-0 h-2 w-2 -translate-x-1/2 rounded-full"
             style={{

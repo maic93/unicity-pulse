@@ -14,11 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import {
-  settingsStore,
-  useSettings,
-  type DevConsoleSettings,
-} from "@/lib/settings";
+import { settingsStore, useSettings, type DevConsoleSettings } from "@/lib/settings";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -93,9 +89,7 @@ function SettingsView() {
         >
           <Select
             value={String(draft.autoRefreshMs)}
-            onValueChange={(v) =>
-              setDraft((d) => ({ ...d, autoRefreshMs: Number(v) }))
-            }
+            onValueChange={(v) => setDraft((d) => ({ ...d, autoRefreshMs: Number(v) }))}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue />
@@ -109,10 +103,7 @@ function SettingsView() {
             </SelectContent>
           </Select>
         </Row>
-        <Row
-          label="Default landing page"
-          hint="The route the sidebar 'U' logo points to."
-        >
+        <Row label="Default landing page" hint="The route the sidebar 'U' logo points to.">
           <Select
             value={draft.defaultLanding}
             onValueChange={(v) =>
@@ -143,9 +134,7 @@ function SettingsView() {
         >
           <Switch
             checked={draft.developerMode}
-            onCheckedChange={(v) =>
-              setDraft((d) => ({ ...d, developerMode: v }))
-            }
+            onCheckedChange={(v) => setDraft((d) => ({ ...d, developerMode: v }))}
           />
         </Row>
       </GlassCard>

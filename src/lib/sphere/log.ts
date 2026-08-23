@@ -52,11 +52,7 @@ export const sdkLog = {
     entries = [];
     emit();
   },
-  start(input: {
-    method: string;
-    kind: SdkLogEntry["kind"];
-    params?: unknown;
-  }): SdkLogEntry {
+  start(input: { method: string; kind: SdkLogEntry["kind"]; params?: unknown }): SdkLogEntry {
     const entry: SdkLogEntry = {
       id: nextId(),
       method: input.method,

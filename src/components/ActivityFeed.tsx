@@ -4,14 +4,7 @@
  * SDK call, intent and wallet lifecycle event.
  */
 import { useEffect, useState } from "react";
-import {
-  Activity,
-  ArrowUpRight,
-  CheckCircle2,
-  Radio,
-  Link2,
-  XCircle,
-} from "lucide-react";
+import { Activity, ArrowUpRight, CheckCircle2, Radio, Link2, XCircle } from "lucide-react";
 
 import { sdkLog, type SdkLogEntry } from "@/lib/sphere/log";
 import { formatRelative } from "@/lib/format";
@@ -24,11 +17,7 @@ export function ActivityFeed({ limit = 8 }: { limit?: number }) {
   const visible = entries.slice(0, limit);
 
   if (visible.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Waiting for the first SDK event…
-      </p>
-    );
+    return <p className="text-sm text-muted-foreground">Waiting for the first SDK event…</p>;
   }
 
   return (
@@ -41,8 +30,7 @@ export function ActivityFeed({ limit = 8 }: { limit?: number }) {
         >
           <span
             className={
-              "mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg " +
-              badgeClass(e)
+              "mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg " + badgeClass(e)
             }
           >
             {iconFor(e)}
@@ -54,9 +42,7 @@ export function ActivityFeed({ limit = 8 }: { limit?: number }) {
                 {formatRelative(e.startedAt)}
               </span>
             </div>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {subtitleFor(e)}
-            </p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitleFor(e)}</p>
           </div>
         </li>
       ))}
@@ -75,11 +61,9 @@ function iconFor(e: SdkLogEntry) {
 }
 
 function badgeClass(e: SdkLogEntry) {
-  if (e.status === "error")
-    return "bg-destructive/15 text-destructive";
+  if (e.status === "error") return "bg-destructive/15 text-destructive";
   if (e.kind === "intent") return "bg-primary/15 text-primary";
-  if (e.kind === "connect" || e.kind === "disconnect")
-    return "bg-secondary/15 text-secondary";
+  if (e.kind === "connect" || e.kind === "disconnect") return "bg-secondary/15 text-secondary";
   if (e.kind === "event") return "bg-warning/15 text-warning";
   return "bg-success/15 text-success";
 }
@@ -95,7 +79,5 @@ function subtitleFor(e: SdkLogEntry) {
   if (e.kind === "connect") return "Sphere Connect session established";
   if (e.kind === "disconnect") return "Session closed";
   if (e.kind === "event") return "Wallet lifecycle event";
-  return e.duration !== undefined
-    ? `${e.duration}ms · RPC query`
-    : "RPC query";
+  return e.duration !== undefined ? `${e.duration}ms · RPC query` : "RPC query";
 }

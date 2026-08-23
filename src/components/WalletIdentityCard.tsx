@@ -43,8 +43,7 @@ export function WalletIdentityCard({
         aria-hidden
         className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full blur-3xl"
         style={{
-          background:
-            "radial-gradient(circle, oklch(0.74 0.19 45 / 0.35), transparent 70%)",
+          background: "radial-gradient(circle, oklch(0.74 0.19 45 / 0.35), transparent 70%)",
         }}
       />
       <div className="relative flex flex-wrap items-start gap-6">
@@ -92,9 +91,7 @@ export function WalletIdentityCard({
             ) : (
               <>
                 <AnimatedCounter value={balance} decimals={balanceDecimals} />
-                <span className="ml-1 text-sm text-muted-foreground">
-                  {symbol}
-                </span>
+                <span className="ml-1 text-sm text-muted-foreground">{symbol}</span>
               </>
             )
           }
@@ -133,18 +130,10 @@ export function WalletIdentityCard({
   );
 }
 
-function StatBlock({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) {
+function StatBlock({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-border/60 bg-card/50 p-3">
-      <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
-        {label}
-      </p>
+      <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</p>
       <p className="mt-1 text-lg font-semibold tracking-tight">{value}</p>
     </div>
   );
@@ -179,6 +168,3 @@ function buildGradient(seed: string) {
   const b = (a + 60 + ((h >> 8) % 90)) % 360;
   return `linear-gradient(135deg, oklch(0.72 0.18 ${a}), oklch(0.55 0.17 ${b}))`;
 }
-
-
-

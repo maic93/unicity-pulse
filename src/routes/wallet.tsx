@@ -42,14 +42,11 @@ function WalletView() {
   const balances = useBalances();
   const history = useHistory();
 
-  const address =
-    identity?.nametag ?? identity?.directAddress ?? identity?.chainPubkey ?? "";
+  const address = identity?.nametag ?? identity?.directAddress ?? identity?.chainPubkey ?? "";
   const primary = balances.data?.[0];
   const historyEntries = history.data ?? [];
 
-  const stats = useMemo(() => computeWalletStats(historyEntries), [
-    historyEntries,
-  ]);
+  const stats = useMemo(() => computeWalletStats(historyEntries), [historyEntries]);
 
   const exportPayload = {
     identity,
@@ -67,9 +64,7 @@ function WalletView() {
           <p className="mono text-[11px] uppercase tracking-[0.25em] text-secondary">
             Sphere identity
           </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-            Your presence on Unicity
-          </h1>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Your presence on Unicity</h1>
         </div>
         <div className="flex gap-2">
           <Button
@@ -133,10 +128,7 @@ function WalletView() {
           icon={<TrendingUp className="h-4 w-4" />}
           value={
             <span className="mono">
-              <AnimatedCounter
-                value={stats.largest}
-                decimals={stats.largest < 100 ? 2 : 0}
-              />
+              <AnimatedCounter value={stats.largest} decimals={stats.largest < 100 ? 2 : 0} />
             </span>
           }
           hint="Peak activity"
@@ -170,8 +162,16 @@ function WalletView() {
           height={440}
         />
         <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-muted-foreground sm:grid-cols-4">
-          <LegendChip icon={<ArrowDownLeft className="h-3 w-3" />} tone="success" label={`${stats.incoming} incoming`} />
-          <LegendChip icon={<ArrowUpRight className="h-3 w-3" />} tone="primary" label={`${stats.outgoing} outgoing`} />
+          <LegendChip
+            icon={<ArrowDownLeft className="h-3 w-3" />}
+            tone="success"
+            label={`${stats.incoming} incoming`}
+          />
+          <LegendChip
+            icon={<ArrowUpRight className="h-3 w-3" />}
+            tone="primary"
+            label={`${stats.outgoing} outgoing`}
+          />
           <LegendChip label={`avg · ${stats.average.toFixed(2)}`} />
           <LegendChip label={`peers · ${stats.uniqueCounterparties}`} />
         </div>
@@ -189,21 +189,14 @@ function WalletView() {
           {balances.isLoading ? (
             <Skeleton className="h-24 w-full" />
           ) : (balances.data ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Wallet reports no balances.
-            </p>
+            <p className="text-sm text-muted-foreground">Wallet reports no balances.</p>
           ) : (
             <ul className="divide-y divide-border/60">
               {(balances.data ?? []).map((b) => (
-                <li
-                  key={b.coinId}
-                  className="flex items-center justify-between py-3"
-                >
+                <li key={b.coinId} className="flex items-center justify-between py-3">
                   <div>
                     <p className="text-sm font-medium">{b.symbol}</p>
-                    <p className="mono text-[11px] text-muted-foreground">
-                      {b.coinId}
-                    </p>
+                    <p className="mono text-[11px] text-muted-foreground">{b.coinId}</p>
                   </div>
                   <p className="mono text-base font-semibold">
                     <AnimatedCounter
@@ -216,10 +209,7 @@ function WalletView() {
             </ul>
           )}
         </GlassCard>
-        <GlassCard
-          title="Raw SDK payload"
-          description="Live snapshot from Sphere Connect"
-        >
+        <GlassCard title="Raw SDK payload" description="Live snapshot from Sphere Connect">
           <JsonViewer value={exportPayload} filename="wallet.json" maxHeight={280} />
         </GlassCard>
       </div>
@@ -267,9 +257,7 @@ interface WalletStats {
   uniqueCounterparties: number;
 }
 
-function computeWalletStats(
-  history: import("@/lib/sphere/types").HistoryEntry[],
-): WalletStats {
+function computeWalletStats(history: import("@/lib/sphere/types").HistoryEntry[]): WalletStats {
   if (history.length === 0) {
     return {
       total: 0,
@@ -301,10 +289,7 @@ function computeWalletStats(
     hours[d.getHours()] = (hours[d.getHours()] ?? 0) + 1;
     if (t.counterparty) peers.add(t.counterparty);
   }
-  const mostActiveHour = hours.reduce(
-    (best, cur, i) => (cur > (hours[best] ?? -1) ? i : best),
-    0,
-  );
+  const mostActiveHour = hours.reduce((best, cur, i) => (cur > (hours[best] ?? -1) ? i : best), 0);
   return {
     total: history.length,
     incoming,

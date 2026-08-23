@@ -1,9 +1,5 @@
 import { createFileRoute, ClientOnly } from "@tanstack/react-router";
-import {
-  Play,
-  Terminal,
-  Zap,
-} from "lucide-react";
+import { Play, Terminal, Zap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -48,7 +44,12 @@ type Result =
   | { status: "idle" }
   | { status: "pending" }
   | { status: "ok"; response: unknown; duration: number; label: string }
-  | { status: "error"; error: { message: string; stack?: string }; duration: number; label: string };
+  | {
+      status: "error";
+      error: { message: string; stack?: string };
+      duration: number;
+      label: string;
+    };
 
 interface Preset {
   key: string;
@@ -118,8 +119,7 @@ const PRESETS: Preset[] = [
     label: "Send test transaction",
     description: "intent:send — 0 UCT self-transfer (safe smoke test)",
     run: async ({ identity }) => {
-      const recipient =
-        identity?.nametag ?? identity?.directAddress ?? identity?.chainPubkey;
+      const recipient = identity?.nametag ?? identity?.directAddress ?? identity?.chainPubkey;
       if (!recipient) throw new Error("Wallet identity unavailable");
       return sendTokens({
         recipient,
@@ -184,12 +184,8 @@ function Playground() {
         return;
       }
     }
-    await execute(
-      `${customKind}:${method}`,
-      () =>
-        customKind === "query"
-          ? rawQuery(method, params)
-          : rawIntent(method, params ?? {}),
+    await execute(`${customKind}:${method}`, () =>
+      customKind === "query" ? rawQuery(method, params) : rawIntent(method, params ?? {}),
     );
   }
 
@@ -203,16 +199,12 @@ function Playground() {
           <Terminal className="h-6 w-6 text-primary" /> API Playground
         </h1>
         <p className="text-sm text-muted-foreground">
-          Fire real Sphere Connect calls against the Unicity Testnet and inspect
-          the raw responses.
+          Fire real Sphere Connect calls against the Unicity Testnet and inspect the raw responses.
         </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <GlassCard
-          title="Presets"
-          description="One-click calls to the official SDK methods"
-        >
+        <GlassCard title="Presets" description="One-click calls to the official SDK methods">
           <div className="grid gap-2 sm:grid-cols-2">
             {PRESETS.map((p) => (
               <button
@@ -225,18 +217,13 @@ function Playground() {
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Play className="h-3.5 w-3.5 text-primary" /> {p.label}
                 </div>
-                <p className="mono mt-1 text-[11px] text-muted-foreground">
-                  {p.description}
-                </p>
+                <p className="mono mt-1 text-[11px] text-muted-foreground">{p.description}</p>
               </button>
             ))}
           </div>
         </GlassCard>
 
-        <GlassCard
-          title="Custom call"
-          description="Any sphere_* method or intent action"
-        >
+        <GlassCard title="Custom call" description="Any sphere_* method or intent action">
           <div className="space-y-3">
             <div>
               <Label>Kind</Label>
@@ -318,9 +305,7 @@ function Playground() {
         {result.status === "error" && (
           <div className="space-y-3">
             <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
-              <p className="mono text-xs font-semibold text-destructive">
-                {result.error.message}
-              </p>
+              <p className="mono text-xs font-semibold text-destructive">{result.error.message}</p>
               {result.error.stack && (
                 <pre className="mono mt-2 max-h-40 overflow-auto text-[11px] text-destructive/70">
                   {result.error.stack}
@@ -337,22 +322,18 @@ function Playground() {
 
 function ErrorHint({ message }: { message: string }) {
   const m = message.toLowerCase();
-  const hint =
-    m.includes("not connected")
-      ? "Reconnect the Sphere wallet using the button in the header."
-      : m.includes("unauthorized") || m.includes("denied")
-        ? "The wallet rejected this request. Approve it in the Sphere popup."
-        : m.includes("timeout")
-          ? "The gateway did not respond in time. Try again in a few seconds."
-          : m.includes("json") || m.includes("parse")
-            ? "Double-check the JSON syntax of your params."
-            : "See the /logs tab for the full request payload and stack.";
+  const hint = m.includes("not connected")
+    ? "Reconnect the Sphere wallet using the button in the header."
+    : m.includes("unauthorized") || m.includes("denied")
+      ? "The wallet rejected this request. Approve it in the Sphere popup."
+      : m.includes("timeout")
+        ? "The gateway did not respond in time. Try again in a few seconds."
+        : m.includes("json") || m.includes("parse")
+          ? "Double-check the JSON syntax of your params."
+          : "See the /logs tab for the full request payload and stack.";
   return (
     <p className="text-xs text-muted-foreground">
-      <span className="mono uppercase tracking-widest text-foreground">
-        suggested fix:
-      </span>{" "}
-      {hint}
+      <span className="mono uppercase tracking-widest text-foreground">suggested fix:</span> {hint}
     </p>
   );
 }

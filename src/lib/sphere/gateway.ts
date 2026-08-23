@@ -94,10 +94,7 @@ export async function getLatestBlock(): Promise<LatestBlock> {
     const shards = await Promise.all(
       SHARD_IDS.map(async (shardId): Promise<ShardHeight> => {
         try {
-          const r = await rpc<{ blockNumber: string | number }>(
-            "get_block_height",
-            { shardId },
-          );
+          const r = await rpc<{ blockNumber: string | number }>("get_block_height", { shardId });
           return { shardId, blockNumber: Number(r.blockNumber) };
         } catch (err) {
           return {

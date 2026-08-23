@@ -1,13 +1,6 @@
 import { createFileRoute, ClientOnly } from "@tanstack/react-router";
 import { useMemo, useState, useSyncExternalStore } from "react";
-import {
-  ArrowRight,
-  ChevronDown,
-  ChevronRight,
-  Copy,
-  Download,
-  Trash2,
-} from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronRight, Copy, Download, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { GlassCard } from "@/components/GlassCard";
@@ -51,7 +44,9 @@ function LogsView() {
       const q = query.toLowerCase();
       return (
         l.method.toLowerCase().includes(q) ||
-        JSON.stringify(l.params ?? "").toLowerCase().includes(q)
+        JSON.stringify(l.params ?? "")
+          .toLowerCase()
+          .includes(q)
       );
     });
   }, [logs, query, status]);
@@ -72,9 +67,7 @@ function LogsView() {
 
       <GlassCard title="Request timeline" description="Session events">
         {timeline.length === 0 ? (
-          <p className="py-4 text-center text-sm text-muted-foreground">
-            No events recorded yet.
-          </p>
+          <p className="py-4 text-center text-sm text-muted-foreground">No events recorded yet.</p>
         ) : (
           <ol className="relative space-y-3 pl-4 before:absolute before:left-1 before:top-1 before:bottom-1 before:w-px before:bg-border">
             {timeline.map((t) => (
@@ -95,9 +88,7 @@ function LogsView() {
                     {formatTimestamp(t.startedAt)}
                   </span>
                   {t.duration !== undefined && (
-                    <span className="mono text-[11px] text-muted-foreground">
-                      · {t.duration}ms
-                    </span>
+                    <span className="mono text-[11px] text-muted-foreground">· {t.duration}ms</span>
                   )}
                 </div>
               </li>
@@ -169,9 +160,7 @@ function LogsView() {
         </div>
 
         {filtered.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            No matching entries.
-          </p>
+          <p className="py-8 text-center text-sm text-muted-foreground">No matching entries.</p>
         ) : (
           <ul className="divide-y divide-border">
             {filtered.map((entry) => {
@@ -196,9 +185,7 @@ function LogsView() {
                     >
                       {entry.kind}
                     </span>
-                    <span className="mono flex-1 truncate text-sm">
-                      {entry.method}
-                    </span>
+                    <span className="mono flex-1 truncate text-sm">{entry.method}</span>
                     <span className="mono text-[11px] text-muted-foreground">
                       {entry.duration !== undefined ? `${entry.duration}ms` : "…"}
                     </span>
