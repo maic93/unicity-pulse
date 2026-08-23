@@ -66,10 +66,7 @@ export function JsonViewer({
       </div>
       {!collapsed && (
         <pre className="mono overflow-auto p-3 text-xs leading-relaxed" style={{ maxHeight }}>
-          <code
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{ __html: highlight(text) }}
-          />
+          <code dangerouslySetInnerHTML={{ __html: highlight(text) }} />
         </pre>
       )}
     </div>
