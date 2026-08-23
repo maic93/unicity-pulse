@@ -218,13 +218,59 @@ function SendView() {
           <Button
             type="submit"
             className="w-full gap-2"
-            disabled={send.isPending}
+            disabled={send.isPending || isLocked || isNetworkMismatch}
           >
             <Send className="h-4 w-4" />
-            {send.isPending ? "Awaiting wallet…" : "Review & send"}
+            {isLocked
+              ? "Wallet locked"
+              : isNetworkMismatch
+                ? "Wrong network"
+                : send.isPending
+                  ? "Awaiting wallet approval…"
+                  : "Review & send"}
           </Button>
         </form>
       </GlassCard>
+
+      {(send.isPending || send.data || send.error) && (
+        <GlassCard>
+          <div className="flex items-start gap-3">
+            {send.isPending ? (
+              <Loader2 className="mt-0.5 h-4 w-4 animate-spin text-secondary" />
+            ) : send.error ? (
+              <XCircle className="mt-0.5 h-4 w-4 text-destructive" />
+            ) : (
+              <CheckCircle2 className="mt-0.5 h-4 w-4 text-success" />
+            )}
+            <div className="min-w-0 flex-1 space-y-2">
+              <p className="text-sm font-medium">
+                {send.isPending
+                  ? "Pending approval in Sphere wallet"
+                  : send.error
+                    ? "Transfer failed"
+                    : `Transfer ${send.data?.status ?? "submitted"}`}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {send.isPending
+                  ? "Approve or reject the intent in your wallet. This console waits for the wallet's response."
+                  : send.error
+                    ? describeSphereError(send.error)
+                    : send.data?.deliveryPending
+                      ? "Signed and submitted — delivery to the recipient is still pending."
+                      : "Signed and submitted to Unicity testnet2."}
+              </p>
+              {send.data?.transferId && (
+                <p className="mono break-all text-xs text-muted-foreground">
+                  transferId: {send.data.transferId}
+                </p>
+              )}
+              {send.data?.raw !== undefined && (
+                <JsonViewer data={send.data.raw} collapsed />
+              )}
+            </div>
+          </div>
+        </GlassCard>
+      )}
 
       <Dialog open={confirm} onOpenChange={setConfirm}>
         <DialogContent>
