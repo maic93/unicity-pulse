@@ -34,6 +34,11 @@ export function ConnectGate({ children }: { children: ReactNode }) {
       >
         {isConnecting ? "Connecting…" : "Connect Sphere Wallet"}
       </Button>
+      {lastError && !isConnecting && (
+        <p className="mt-4 max-w-sm rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          {lastError}
+        </p>
+      )}
       <p className="mt-6 text-xs text-muted-foreground">
         Don't have Sphere?{" "}
         <a
