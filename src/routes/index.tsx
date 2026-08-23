@@ -284,16 +284,34 @@ function PulseHero() {
             icon={<Radio className="h-4 w-4" />}
             label="Network health"
             value={
-              <span className="inline-flex items-center gap-2">
-                <span
-                  className="h-2.5 w-2.5 rounded-full bg-success"
-                  style={{ boxShadow: "0 0 12px oklch(0.74 0.16 155 / 0.9)" }}
-                />
-                Online
-              </span>
+              gateway.isLoading ? (
+                <Skeleton className="h-7 w-24" />
+              ) : gateway.error ? (
+                <span className="text-sm text-destructive">Unreachable</span>
+              ) : (
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    className={
+                      gatewayHealthy
+                        ? "h-2.5 w-2.5 rounded-full bg-success"
+                        : "h-2.5 w-2.5 rounded-full bg-destructive"
+                    }
+                    style={
+                      gatewayHealthy
+                        ? { boxShadow: "0 0 12px oklch(0.74 0.16 155 / 0.9)" }
+                        : undefined
+                    }
+                  />
+                  {gatewayHealthy ? "Online" : (gateway.data?.status ?? "Unavailable")}
+                </span>
+              )
             }
-            hint={`gateway · ${latency ?? "—"} ms`}
-            tone="success"
+            hint={
+              gateway.error
+                ? "testnet2 gateway /health failed"
+                : `${Object.keys(gateway.data?.aggregators ?? {}).length || "—"} aggregators · ${latency ?? "—"} ms`
+            }
+            tone={gateway.error ? "neutral" : "success"}
           />
           <PulseStat
             icon={<WalletIcon className="h-4 w-4" />}
