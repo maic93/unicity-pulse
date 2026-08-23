@@ -359,14 +359,14 @@ function PulseHero() {
                 </span>
               ) : (
                 <span className="text-muted-foreground text-sm">
-                  Not exposed
+                  Unavailable
                 </span>
               )
             }
             hint={
               latestBlock.error
-                ? "sphere_getLatestBlock unavailable"
-                : "auto-refresh 20s"
+                ? "gateway block height unavailable"
+                : `${latestBlock.data?.shards.filter((s) => s.blockNumber !== null).length ?? 0}/8 shards · testnet2`
             }
             tone="secondary"
             action={
