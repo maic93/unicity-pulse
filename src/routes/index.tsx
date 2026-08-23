@@ -51,29 +51,6 @@ function PulsePage() {
   );
 }
 
-function useGatewayLatency() {
-  const [latency, setLatency] = useState<number | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    async function ping() {
-      const start = performance.now();
-      try {
-        await fetch(GATEWAY_URL, { method: "HEAD", mode: "no-cors" });
-      } catch {
-        /* no-cors */
-      }
-      if (!cancelled) setLatency(Math.round(performance.now() - start));
-    }
-    void ping();
-    const id = setInterval(() => void ping(), 15_000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
-  return latency;
-}
-
 function PulseHero() {
   const {
     identity,
@@ -82,21 +59,19 @@ function PulseHero() {
     sessionId,
     connectedAt,
     isConnected,
+    isLocked,
+    isNetworkMismatch,
     connect,
     isConnecting,
   } = useSphere();
   const balances = useBalances();
   const history = useHistory();
-  const latency = useGatewayLatency();
+  const gateway = useGatewayHealth();
+  const latency = gateway.data?.latencyMs ?? null;
+  const gatewayHealthy = gateway.data?.status === "healthy";
 
-  const latestBlock = useQuery({
-    queryKey: ["sphere", "latestBlock"],
-    queryFn: () => getLatestBlock(),
-    enabled: isConnected,
-    retry: false,
-    staleTime: 30_000,
-    refetchInterval: 20_000,
-  });
+  // Real chain tip, read straight from the testnet2 gateway (public data).
+  const latestBlock = useLatestBlock();
 
   const primary = balances.data?.[0];
   const address =
