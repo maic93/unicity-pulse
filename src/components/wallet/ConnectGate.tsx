@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useSphere } from "@/lib/sphere/provider";
 
 export function ConnectGate({ children }: { children: ReactNode }) {
-  const { isConnected, isConnecting, connect } = useSphere();
+  const { isConnected, isConnecting, connect, lastError } = useSphere();
   if (isConnected) return <>{children}</>;
   return (
     <div className="glass-strong mx-auto flex max-w-lg flex-col items-center rounded-3xl px-6 py-16 text-center animate-fade-up">
