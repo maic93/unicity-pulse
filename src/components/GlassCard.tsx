@@ -24,14 +24,8 @@ export function GlassCard({
       {(title || action) && (
         <header className="mb-4 flex items-start justify-between gap-4">
           <div>
-            {title && (
-              <h2 className="text-sm font-semibold tracking-tight">{title}</h2>
-            )}
-            {description && (
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {description}
-              </p>
-            )}
+            {title && <h2 className="text-sm font-semibold tracking-tight">{title}</h2>}
+            {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
           </div>
           {action}
         </header>

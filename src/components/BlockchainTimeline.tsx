@@ -9,11 +9,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { cn } from "@/lib/utils";
 import type { HistoryEntry } from "@/lib/sphere/types";
-import {
-  formatAmount,
-  formatTimestamp,
-  shortAddress,
-} from "@/lib/format";
+import { formatAmount, formatTimestamp, shortAddress } from "@/lib/format";
 
 interface Props {
   entries: HistoryEntry[];
@@ -116,11 +112,7 @@ function TxRow({ tx }: { tx: HistoryEntry }) {
             : "0 0 24px oklch(0.74 0.19 45 / 0.4)",
         }}
       >
-        {incoming ? (
-          <ArrowDownLeft className="h-4 w-4" />
-        ) : (
-          <ArrowUpRight className="h-4 w-4" />
-        )}
+        {incoming ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
       </span>
       <button
         type="button"
@@ -133,7 +125,8 @@ function TxRow({ tx }: { tx: HistoryEntry }) {
               {incoming ? "Received tokens" : "Sent tokens"}
             </p>
             <p className="mono mt-0.5 text-xs text-muted-foreground">
-              {tx.counterparty ? shortAddress(tx.counterparty, 8, 6) : "unknown counterparty"} · {formatTimestamp(tx.timestamp)}
+              {tx.counterparty ? shortAddress(tx.counterparty, 8, 6) : "unknown counterparty"} ·{" "}
+              {formatTimestamp(tx.timestamp)}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -197,9 +190,7 @@ function EventRow({ ev }: { ev: TimelineEvent }) {
       </span>
       <div className="glass rounded-2xl p-4">
         <p className="text-sm font-medium tracking-tight">{ev.title}</p>
-        {ev.description && (
-          <p className="mt-0.5 text-xs text-muted-foreground">{ev.description}</p>
-        )}
+        {ev.description && <p className="mt-0.5 text-xs text-muted-foreground">{ev.description}</p>}
         <p className="mono mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">
           {formatTimestamp(ev.timestamp)}
         </p>

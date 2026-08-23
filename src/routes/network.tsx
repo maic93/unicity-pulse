@@ -32,10 +32,10 @@ function NetworkView() {
     async function ping() {
       const start = performance.now();
       try {
-        const res = await fetch(
-          "https://gateway.testnet2.unicity.network",
-          { method: "HEAD", mode: "no-cors" },
-        );
+        const res = await fetch("https://gateway.testnet2.unicity.network", {
+          method: "HEAD",
+          mode: "no-cors",
+        });
         void res;
       } catch {
         /* no-cors will still resolve on reachable hosts */
@@ -66,15 +66,8 @@ function NetworkView() {
           <dl className="space-y-3 text-sm">
             <Row label="Name" value={network?.name ?? "testnet2"} mono />
             <Row label="Network ID" value={String(network?.id ?? 4)} mono />
-            <Row
-              label="Gateway"
-              value="gateway.testnet2.unicity.network"
-              mono
-            />
-            <Row
-              label="Status"
-              value={<StatusBadge variant="success">Live</StatusBadge>}
-            />
+            <Row label="Gateway" value="gateway.testnet2.unicity.network" mono />
+            <Row label="Status" value={<StatusBadge variant="success">Live</StatusBadge>} />
           </dl>
         </GlassCard>
 
@@ -92,10 +85,7 @@ function NetworkView() {
                 )
               }
             />
-            <Row
-              label="Ready"
-              value={<StatusBadge variant="success">Connected</StatusBadge>}
-            />
+            <Row label="Ready" value={<StatusBadge variant="success">Connected</StatusBadge>} />
           </dl>
         </GlassCard>
 
@@ -140,15 +130,7 @@ function NetworkView() {
   );
 }
 
-function Row({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: React.ReactNode;
-  mono?: boolean;
-}) {
+function Row({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <dt className="text-muted-foreground">{label}</dt>

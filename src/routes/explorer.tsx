@@ -1,12 +1,6 @@
 import { createFileRoute, ClientOnly } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  Compass,
-  Copy,
-  Search,
-} from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Compass, Copy, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { GlassCard } from "@/components/GlassCard";
@@ -46,8 +40,7 @@ function ExplorerView() {
   const history = useHistory();
   const balances = useBalances();
   const { identity } = useSphere();
-  const ownAddress =
-    identity?.nametag ?? identity?.directAddress ?? identity?.chainPubkey ?? "";
+  const ownAddress = identity?.nametag ?? identity?.directAddress ?? identity?.chainPubkey ?? "";
 
   const result = useMemo<SearchResult>(() => {
     if (!submitted) return null;
@@ -55,21 +48,15 @@ function ExplorerView() {
     if (!q) return null;
     const items = history.data ?? [];
     const tx = items.find(
-      (t) =>
-        (t.hash ?? "").toLowerCase() === q ||
-        (t.id ?? "").toLowerCase() === q,
+      (t) => (t.hash ?? "").toLowerCase() === q || (t.id ?? "").toLowerCase() === q,
     );
     if (tx) return { kind: "tx", entry: tx };
 
     const isAddress =
-      q === ownAddress.toLowerCase() ||
-      q.startsWith("@") ||
-      /^[0-9a-f]{20,}$/i.test(q);
+      q === ownAddress.toLowerCase() || q.startsWith("@") || /^[0-9a-f]{20,}$/i.test(q);
     if (isAddress) {
       const related = items.filter(
-        (t) =>
-          (t.counterparty ?? "").toLowerCase() === q ||
-          q === ownAddress.toLowerCase(),
+        (t) => (t.counterparty ?? "").toLowerCase() === q || q === ownAddress.toLowerCase(),
       );
       return { kind: "wallet", address: submitted, tx: related };
     }
@@ -131,9 +118,8 @@ function ExplorerView() {
       {result?.kind === "empty" && (
         <GlassCard title="No match" description={`Nothing found for “${result.query}”`}>
           <p className="text-sm text-muted-foreground">
-            The explorer only indexes transactions from your current Sphere
-            session. Try connecting a wallet that has interacted with this
-            address, or send a testnet transaction from the{" "}
+            The explorer only indexes transactions from your current Sphere session. Try connecting
+            a wallet that has interacted with this address, or send a testnet transaction from the{" "}
             <span className="text-foreground">Send</span> page.
           </p>
         </GlassCard>
@@ -141,16 +127,10 @@ function ExplorerView() {
 
       {result?.kind === "wallet" && (
         <div className="space-y-4">
-          <GlassCard
-            title="Wallet"
-            action={<StatusBadge variant="primary">TESTNET</StatusBadge>}
-          >
+          <GlassCard title="Wallet" action={<StatusBadge variant="primary">TESTNET</StatusBadge>}>
             <div className="grid gap-3 md:grid-cols-3">
               <Stat label="Address" value={shortAddress(result.address, 8, 6)} mono />
-              <Stat
-                label="Transactions"
-                value={String(result.tx.length)}
-              />
+              <Stat label="Transactions" value={String(result.tx.length)} />
               <Stat
                 label="Primary balance"
                 value={
@@ -206,11 +186,7 @@ function ExplorerView() {
                 value={`${formatAmount(result.entry.amount)} ${result.entry.symbol ?? ""}`}
               />
               <Stat label="Timestamp" value={formatTimestamp(result.entry.timestamp)} />
-              <Stat
-                label="Counterparty"
-                value={result.entry.counterparty ?? "—"}
-                mono
-              />
+              <Stat label="Counterparty" value={result.entry.counterparty ?? "—"} mono />
             </dl>
           </GlassCard>
           <GlassCard title="Raw payload">
@@ -235,16 +211,8 @@ function Stat({
 }) {
   return (
     <div>
-      <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">
-        {label}
-      </dt>
-      <dd
-        className={
-          mono
-            ? "mono mt-1 break-all text-sm"
-            : "mt-1 text-sm"
-        }
-      >
+      <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</dt>
+      <dd className={mono ? "mono mt-1 break-all text-sm" : "mt-1 text-sm"}>
         {copyable ? (
           <button
             type="button"
@@ -283,9 +251,7 @@ function TxRow({ tx }: { tx: HistoryEntry }) {
           )}
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-medium">
-            {tx.direction === "in" ? "Received" : "Sent"}
-          </p>
+          <p className="text-sm font-medium">{tx.direction === "in" ? "Received" : "Sent"}</p>
           <p className="mono truncate text-xs text-muted-foreground">
             {shortAddress(tx.hash ?? tx.id, 8, 6)}
           </p>
@@ -296,9 +262,7 @@ function TxRow({ tx }: { tx: HistoryEntry }) {
           {tx.direction === "in" ? "+" : "−"}
           {formatAmount(tx.amount)} {tx.symbol ?? ""}
         </p>
-        <p className="text-xs text-muted-foreground">
-          {formatTimestamp(tx.timestamp)}
-        </p>
+        <p className="text-xs text-muted-foreground">{formatTimestamp(tx.timestamp)}</p>
       </div>
     </li>
   );

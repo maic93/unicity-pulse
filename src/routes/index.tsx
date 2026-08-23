@@ -31,12 +31,7 @@ import {
   useLatestBlock,
   useSphere,
 } from "@/lib/sphere/provider";
-import {
-  GATEWAY_URL,
-  SDK_PACKAGE,
-  SDK_VERSION,
-  TESTNET_NETWORK,
-} from "@/lib/sphere/client";
+import { GATEWAY_URL, SDK_PACKAGE, SDK_VERSION, TESTNET_NETWORK } from "@/lib/sphere/client";
 import { formatRelative, shortAddress } from "@/lib/format";
 
 export const Route = createFileRoute("/")({
@@ -74,8 +69,7 @@ function PulseHero() {
   const latestBlock = useLatestBlock();
 
   const primary = balances.data?.[0];
-  const address =
-    identity?.nametag ?? identity?.directAddress ?? identity?.chainPubkey ?? "";
+  const address = identity?.nametag ?? identity?.directAddress ?? identity?.chainPubkey ?? "";
   const blockHeight = extractBlockHeight(latestBlock.data);
   const historyCount = history.data?.length ?? 0;
 
@@ -180,9 +174,8 @@ function PulseHero() {
               <span className="text-foreground">breathe.</span>
             </h1>
             <p className="mt-5 max-w-xl text-base text-muted-foreground">
-              An immersive visualization platform for the Unicity Testnet.
-              Real blockchain data, animated identity, live analytics — powered
-              by the official Sphere SDK.
+              An immersive visualization platform for the Unicity Testnet. Real blockchain data,
+              animated identity, live analytics — powered by the official Sphere SDK.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               {!isConnected ? (
@@ -221,23 +214,15 @@ function PulseHero() {
             <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <MiniStat
                 label="Latency"
-                value={
-                  latency === null ? "—" : `${latency}`
-                }
+                value={latency === null ? "—" : `${latency}`}
                 suffix={latency === null ? "" : "ms"}
               />
               <MiniStat
                 label="Block"
                 value={blockHeight !== null ? `#${blockHeight.toLocaleString()}` : "—"}
               />
-              <MiniStat
-                label="Session"
-                value={sessionId ? shortAddress(sessionId, 4, 4) : "—"}
-              />
-              <MiniStat
-                label="Transport"
-                value={transport ?? "—"}
-              />
+              <MiniStat label="Session" value={sessionId ? shortAddress(sessionId, 4, 4) : "—"} />
+              <MiniStat label="Transport" value={transport ?? "—"} />
             </div>
           </div>
           <div className="relative flex items-center justify-center">
@@ -262,17 +247,10 @@ function PulseHero() {
             <p className="mono text-[11px] uppercase tracking-[0.25em] text-secondary">
               Live command center
             </p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-              Real-time network pulse
-            </h2>
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight">Real-time network pulse</h2>
           </div>
           {isConnected && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full gap-2"
-              onClick={refreshAll}
-            >
+            <Button variant="outline" size="sm" className="rounded-full gap-2" onClick={refreshAll}>
               <RefreshCcw className="h-3.5 w-3.5" />
               Refresh
             </Button>
@@ -281,17 +259,15 @@ function PulseHero() {
 
         {isConnected && isLocked && (
           <div className="mb-4 rounded-2xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning">
-            <span className="font-medium">Sphere wallet is locked.</span>{" "}
-            Unlock it in the wallet — your session stays alive and queries resume
-            automatically.
+            <span className="font-medium">Sphere wallet is locked.</span> Unlock it in the wallet —
+            your session stays alive and queries resume automatically.
           </div>
         )}
         {isConnected && isNetworkMismatch && (
           <div className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            <span className="font-medium">Wrong network.</span> Your wallet
-            reports{" "}
-            <span className="mono">{network?.name ?? `id ${network?.id}`}</span>{" "}
-            — Unicity Pulse targets{" "}
+            <span className="font-medium">Wrong network.</span> Your wallet reports{" "}
+            <span className="mono">{network?.name ?? `id ${network?.id}`}</span> — Unicity Pulse
+            targets{" "}
             <span className="mono">
               {TESTNET_NETWORK.name} (id {TESTNET_NETWORK.id})
             </span>
@@ -350,9 +326,7 @@ function PulseHero() {
                   {identity?.nametag ?? shortAddress(address, 8, 6)}
                 </button>
               ) : (
-                <span className="text-muted-foreground text-base">
-                  Not connected
-                </span>
+                <span className="text-muted-foreground text-base">Not connected</span>
               )
             }
             hint={
@@ -378,9 +352,7 @@ function PulseHero() {
                   #<AnimatedCounter value={blockHeight} />
                 </span>
               ) : (
-                <span className="text-muted-foreground text-sm">
-                  Unavailable
-                </span>
+                <span className="text-muted-foreground text-sm">Unavailable</span>
               )
             }
             hint={
@@ -420,19 +392,13 @@ function PulseHero() {
                     value={balanceNum}
                     decimals={Math.min(4, primary.decimals ?? 0)}
                   />{" "}
-                  <span className="text-sm text-muted-foreground">
-                    {primary.symbol}
-                  </span>
+                  <span className="text-sm text-muted-foreground">{primary.symbol}</span>
                 </span>
               ) : (
                 <span className="text-muted-foreground text-sm">Empty</span>
               )
             }
-            hint={
-              balances.dataUpdatedAt
-                ? `synced ${formatRelative(balances.dataUpdatedAt)}`
-                : "—"
-            }
+            hint={balances.dataUpdatedAt ? `synced ${formatRelative(balances.dataUpdatedAt)}` : "—"}
             tone="primary"
           />
           <PulseStat
@@ -453,11 +419,7 @@ function PulseHero() {
           <PulseStat
             icon={<Package className="h-4 w-4" />}
             label="SDK"
-            value={
-              <span className="mono">
-                v{SDK_VERSION}
-              </span>
-            }
+            value={<span className="mono">v{SDK_VERSION}</span>}
             hint={SDK_PACKAGE}
             tone="neutral"
           />
@@ -465,9 +427,7 @@ function PulseHero() {
             icon={<Fingerprint className="h-4 w-4" />}
             label="Session duration"
             value={<SessionDuration since={connectedAt} />}
-            hint={
-              sessionId ? shortAddress(sessionId, 6, 6) : "no session"
-            }
+            hint={sessionId ? shortAddress(sessionId, 6, 6) : "no session"}
             tone="secondary"
           />
           <PulseStat
@@ -477,20 +437,12 @@ function PulseHero() {
               !isConnected ? (
                 <span className="text-muted-foreground text-sm">—</span>
               ) : history.data && history.data.length > 0 ? (
-                <span className="text-base">
-                  {formatRelative(history.data[0].timestamp)}
-                </span>
+                <span className="text-base">{formatRelative(history.data[0].timestamp)}</span>
               ) : (
-                <span className="text-muted-foreground text-sm">
-                  No activity
-                </span>
+                <span className="text-muted-foreground text-sm">No activity</span>
               )
             }
-            hint={
-              history.data
-                ? `${history.data.length} transactions in cache`
-                : "not loaded"
-            }
+            hint={history.data ? `${history.data.length} transactions in cache` : "not loaded"}
             tone="primary"
           />
         </div>
@@ -504,9 +456,7 @@ function PulseHero() {
               <p className="mono text-[10px] uppercase tracking-[0.25em] text-secondary">
                 Live activity feed
               </p>
-              <h3 className="mt-1 text-lg font-semibold tracking-tight">
-                Every SDK heartbeat
-              </h3>
+              <h3 className="mt-1 text-lg font-semibold tracking-tight">Every SDK heartbeat</h3>
             </div>
             <StatusBadge variant="success">Streaming</StatusBadge>
           </div>
@@ -518,9 +468,7 @@ function PulseHero() {
               <p className="mono text-[10px] uppercase tracking-[0.25em] text-secondary">
                 Connection status
               </p>
-              <h3 className="mt-1 text-lg font-semibold tracking-tight">
-                Sphere Connect
-              </h3>
+              <h3 className="mt-1 text-lg font-semibold tracking-tight">Sphere Connect</h3>
             </div>
             {isConnected ? (
               <StatusBadge variant="success">Live</StatusBadge>
@@ -535,9 +483,7 @@ function PulseHero() {
                 <span className="inline-flex items-center gap-2">
                   <CheckCircle2
                     className={
-                      isConnected
-                        ? "h-4 w-4 text-success"
-                        : "h-4 w-4 text-muted-foreground"
+                      isConnected ? "h-4 w-4 text-success" : "h-4 w-4 text-muted-foreground"
                     }
                   />
                   {isConnected ? "Connected" : "Disconnected"}
@@ -546,16 +492,8 @@ function PulseHero() {
             />
             <Row label="Transport" value={transport ?? "—"} mono />
             <Row label="Network" value={network?.name ?? "testnet2"} mono />
-            <Row
-              label="Session"
-              value={sessionId ? shortAddress(sessionId, 8, 8) : "—"}
-              mono
-            />
-            <Row
-              label="Established"
-              value={connectedAt ? formatRelative(connectedAt) : "—"}
-              mono
-            />
+            <Row label="Session" value={sessionId ? shortAddress(sessionId, 8, 8) : "—"} mono />
+            <Row label="Established" value={connectedAt ? formatRelative(connectedAt) : "—"} mono />
           </dl>
         </div>
       </section>
@@ -563,25 +501,13 @@ function PulseHero() {
   );
 }
 
-function MiniStat({
-  label,
-  value,
-  suffix,
-}: {
-  label: string;
-  value: string;
-  suffix?: string;
-}) {
+function MiniStat({ label, value, suffix }: { label: string; value: string; suffix?: string }) {
   return (
     <div className="rounded-xl border border-border/60 bg-card/40 px-3 py-2">
-      <p className="mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground">
-        {label}
-      </p>
+      <p className="mono text-[9px] uppercase tracking-[0.25em] text-muted-foreground">{label}</p>
       <p className="mono mt-0.5 truncate text-sm font-medium">
         {value}
-        {suffix && (
-          <span className="ml-1 text-xs text-muted-foreground">{suffix}</span>
-        )}
+        {suffix && <span className="ml-1 text-xs text-muted-foreground">{suffix}</span>}
       </p>
     </div>
   );
@@ -614,39 +540,21 @@ function PulseStat({
     <div className="glass hover-lift rounded-2xl p-5 animate-fade-up">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <span
-            className={"grid h-7 w-7 place-items-center rounded-lg " + toneClass}
-          >
-            {icon}
-          </span>
-          <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-            {label}
-          </p>
+          <span className={"grid h-7 w-7 place-items-center rounded-lg " + toneClass}>{icon}</span>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{label}</p>
         </div>
         {action}
       </div>
       <div className="mt-3 text-xl font-semibold tracking-tight">{value}</div>
-      {hint && (
-        <div className="mt-1 text-xs text-muted-foreground">{hint}</div>
-      )}
+      {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
     </div>
   );
 }
 
-function Row({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: ReactNode;
-  mono?: boolean;
-}) {
+function Row({ label, value, mono }: { label: string; value: ReactNode; mono?: boolean }) {
   return (
     <div className="flex items-start justify-between gap-3 border-b border-border/40 pb-3 last:border-0 last:pb-0">
-      <dt className="text-[11px] uppercase tracking-widest text-muted-foreground">
-        {label}
-      </dt>
+      <dt className="text-[11px] uppercase tracking-widest text-muted-foreground">{label}</dt>
       <dd
         className={
           mono
@@ -662,8 +570,7 @@ function Row({
 
 function SessionDuration({ since }: { since: number | null }) {
   const now = useNowTick(since ? 1000 : 0);
-  if (!since)
-    return <span className="text-muted-foreground text-sm">—</span>;
+  if (!since) return <span className="text-muted-foreground text-sm">—</span>;
   const s = Math.max(0, Math.floor((now - since) / 1000));
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);

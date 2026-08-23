@@ -1,12 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  BookOpen,
-  Github,
-  Globe,
-  Package,
-  Sparkles,
-  Terminal,
-} from "lucide-react";
+import { BookOpen, Github, Globe, Package, Sparkles, Terminal } from "lucide-react";
 
 import { GlassCard } from "@/components/GlassCard";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -20,17 +13,12 @@ function AboutPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <p className="mono text-[11px] uppercase tracking-widest text-primary">
-          About
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-          Unicity Dev Console
-        </h1>
+        <p className="mono text-[11px] uppercase tracking-widest text-primary">About</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Unicity Dev Console</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          A developer console for exploring and interacting with the Unicity
-          Testnet using the official Sphere SDK. Not a wallet — a dashboard,
-          playground and log inspector aimed at engineers integrating Unicity
-          into their applications.
+          A developer console for exploring and interacting with the Unicity Testnet using the
+          official Sphere SDK. Not a wallet — a dashboard, playground and log inspector aimed at
+          engineers integrating Unicity into their applications.
         </p>
       </div>
 
@@ -40,9 +28,17 @@ function AboutPage() {
           action={<StatusBadge variant="primary">official</StatusBadge>}
         >
           <div className="space-y-2 text-sm">
-            <Row icon={<Package className="h-4 w-4" />} label={SDK_PACKAGE} value={`v${SDK_VERSION}`} />
+            <Row
+              icon={<Package className="h-4 w-4" />}
+              label={SDK_PACKAGE}
+              value={`v${SDK_VERSION}`}
+            />
             <Row icon={<Globe className="h-4 w-4" />} label="Network" value="testnet2 · id 4" />
-            <Row icon={<Terminal className="h-4 w-4" />} label="Protocol" value="Sphere Connect v2" />
+            <Row
+              icon={<Terminal className="h-4 w-4" />}
+              label="Protocol"
+              value="Sphere Connect v2"
+            />
           </div>
         </GlassCard>
 
@@ -82,26 +78,17 @@ function AboutPage() {
 
       <GlassCard title="Design notes">
         <p className="text-sm text-muted-foreground">
-          Built with TanStack Start, TanStack Query, Tailwind CSS v4 and
-          shadcn/ui. All blockchain data flows through the official Sphere SDK —
-          this app never signs or transmits transactions on its own. Every RPC
-          is logged in memory so developers can inspect the wire behaviour of
-          the wallet in real time.
+          Built with TanStack Start, TanStack Query, Tailwind CSS v4 and shadcn/ui. All blockchain
+          data flows through the official Sphere SDK — this app never signs or transmits
+          transactions on its own. Every RPC is logged in memory so developers can inspect the wire
+          behaviour of the wallet in real time.
         </p>
       </GlassCard>
     </div>
   );
 }
 
-function Row({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
+function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-2 text-sm">
       <span className="flex items-center gap-2 text-muted-foreground">
@@ -149,9 +136,7 @@ function LinkRow({
           </span>
           <span>
             <span className="block text-sm font-medium">{label}</span>
-            <span className="mono block text-[11px] text-muted-foreground">
-              {hint}
-            </span>
+            <span className="mono block text-[11px] text-muted-foreground">{hint}</span>
           </span>
         </span>
         <span className="mono text-xs text-primary">open ↗</span>

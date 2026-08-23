@@ -156,16 +156,10 @@ export function ConstellationGraph({ center, history, height = 420 }: Props) {
               onMouseLeave={() => setHovered((h) => (h === n.key ? null : h))}
               style={{ cursor: "pointer" }}
             >
-              <circle
-                r="22"
-                fill={incoming ? "url(#node-in)" : "url(#node-out)"}
-                opacity="0.55"
-              />
+              <circle r="22" fill={incoming ? "url(#node-in)" : "url(#node-out)"} opacity="0.55" />
               <circle
                 r={Math.min(9, 4 + n.count * 0.8)}
-                fill={
-                  incoming ? "oklch(0.85 0.16 155)" : "oklch(0.85 0.18 45)"
-                }
+                fill={incoming ? "oklch(0.85 0.16 155)" : "oklch(0.85 0.18 45)"}
                 stroke="oklch(1 0 0 / 0.4)"
                 strokeWidth="0.8"
               />
@@ -226,12 +220,8 @@ export function ConstellationGraph({ center, history, height = 420 }: Props) {
             {shortAddress(selected.address, 10, 8)}
           </p>
           <div className="mt-2 flex justify-between text-[11px]">
-            <span className="text-success">
-              in {selected.totalIn.toLocaleString()}
-            </span>
-            <span className="text-primary">
-              out {selected.totalOut.toLocaleString()}
-            </span>
+            <span className="text-success">in {selected.totalIn.toLocaleString()}</span>
+            <span className="text-primary">out {selected.totalOut.toLocaleString()}</span>
           </div>
           <p className="mono mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">
             {selected.count} transaction{selected.count === 1 ? "" : "s"}

@@ -26,11 +26,7 @@ import {
 } from "@/components/ui/select";
 import { JsonViewer } from "@/components/JsonViewer";
 import { describeSphereError } from "@/lib/sphere/client";
-import {
-  useBalances,
-  useSendTokens,
-  useSphere,
-} from "@/lib/sphere/provider";
+import { useBalances, useSendTokens, useSphere } from "@/lib/sphere/provider";
 
 const sendSchema = z.object({
   recipient: z
@@ -39,8 +35,7 @@ const sendSchema = z.object({
     .min(1, "Recipient is required")
     .max(200)
     .refine(
-      (v) =>
-        v.startsWith("@") || /^[0-9a-fA-F]{20,}$/.test(v) || v.includes(":"),
+      (v) => v.startsWith("@") || /^[0-9a-fA-F]{20,}$/.test(v) || v.includes(":"),
       "Enter a Sphere nametag (@name), address, or public key",
     ),
   amount: z
@@ -83,9 +78,7 @@ function SendView() {
     coinId: "",
     memo: "",
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>(
-    {},
-  );
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [confirm, setConfirm] = useState(false);
 
   const coins = balances.data ?? [];
@@ -150,9 +143,7 @@ function SendView() {
               id="recipient"
               placeholder="@alice or public key"
               value={form.recipient}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, recipient: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, recipient: e.target.value }))}
               autoComplete="off"
             />
             {errors.recipient && (
@@ -168,13 +159,9 @@ function SendView() {
                 inputMode="decimal"
                 placeholder="0.00"
                 value={form.amount}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, amount: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
               />
-              {errors.amount && (
-                <p className="mt-1 text-xs text-destructive">{errors.amount}</p>
-              )}
+              {errors.amount && <p className="mt-1 text-xs text-destructive">{errors.amount}</p>}
             </div>
             <div>
               <Label>Token</Label>
@@ -192,9 +179,7 @@ function SendView() {
                       {c.symbol}
                     </SelectItem>
                   ))}
-                  {coins.length === 0 && (
-                    <SelectItem value="UCT">UCT</SelectItem>
-                  )}
+                  {coins.length === 0 && <SelectItem value="UCT">UCT</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
@@ -286,11 +271,7 @@ function SendView() {
           </DialogHeader>
           <dl className="space-y-2 text-sm">
             <Row label="Recipient" value={form.recipient} mono />
-            <Row
-              label="Amount"
-              value={`${form.amount} ${activeCoin?.symbol ?? ""}`}
-              mono
-            />
+            <Row label="Amount" value={`${form.amount} ${activeCoin?.symbol ?? ""}`} mono />
             {form.memo && <Row label="Memo" value={form.memo} />}
             <Row label="Network" value="Unicity testnet2" />
           </dl>
@@ -308,21 +289,11 @@ function SendView() {
   );
 }
 
-function Row({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
+function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className={mono ? "mono max-w-[60%] break-all text-right" : "text-right"}>
-        {value}
-      </dd>
+      <dd className={mono ? "mono max-w-[60%] break-all text-right" : "text-right"}>{value}</dd>
     </div>
   );
 }

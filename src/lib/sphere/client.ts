@@ -115,11 +115,7 @@ function emit(event: SphereLifecycleEvent) {
 }
 
 /** Wallet-pushed activity events the console listens to (auto-subscribed by the SDK). */
-const ACTIVITY_EVENTS = [
-  "transfer:incoming",
-  "transfer:outgoing",
-  "balance:changed",
-] as const;
+const ACTIVITY_EVENTS = ["transfer:incoming", "transfer:outgoing", "balance:changed"] as const;
 
 // --- error handling ----------------------------------------------------------
 
@@ -433,10 +429,7 @@ function requireClient(): ConnectClientLike {
 
 // --- logged RPC --------------------------------------------------------------
 
-async function loggedQuery<T>(
-  method: string,
-  params?: Record<string, unknown>,
-): Promise<T> {
+async function loggedQuery<T>(method: string, params?: Record<string, unknown>): Promise<T> {
   const c = requireClient();
   const entry = sdkLog.start({ method, kind: "query", params });
   try {
@@ -449,10 +442,7 @@ async function loggedQuery<T>(
   }
 }
 
-async function loggedIntent<T>(
-  action: string,
-  params: Record<string, unknown>,
-): Promise<T> {
+async function loggedIntent<T>(action: string, params: Record<string, unknown>): Promise<T> {
   const c = requireClient();
   const entry = sdkLog.start({ method: `intent:${action}`, kind: "intent", params });
   try {
@@ -512,25 +502,16 @@ export async function sendTokens(params: SendParams): Promise<SendResult> {
 }
 
 /** Raw playground call: developer-supplied method + params. */
-export async function rawQuery(
-  method: string,
-  params?: Record<string, unknown>,
-): Promise<unknown> {
+export async function rawQuery(method: string, params?: Record<string, unknown>): Promise<unknown> {
   return loggedQuery<unknown>(method, params);
 }
 
-export async function rawIntent(
-  action: string,
-  params: Record<string, unknown>,
-): Promise<unknown> {
+export async function rawIntent(action: string, params: Record<string, unknown>): Promise<unknown> {
   return loggedIntent<unknown>(action, params);
 }
 
 /** Subscribe to a wallet event (the SDK auto-subscribes on the wire). */
-export function onWalletEvent(
-  event: string,
-  handler: (data: unknown) => void,
-): () => void {
+export function onWalletEvent(event: string, handler: (data: unknown) => void): () => void {
   if (!active) return () => undefined;
   return active.client.on(event, handler);
 }
@@ -546,8 +527,7 @@ function normaliseSendResult(raw: unknown): SendResult {
   return {
     status,
     transferId: (o.transferId ?? o.id ?? o.txId ?? o.hash) as string | undefined,
-    deliveryPending:
-      typeof o.deliveryPending === "boolean" ? o.deliveryPending : undefined,
+    deliveryPending: typeof o.deliveryPending === "boolean" ? o.deliveryPending : undefined,
     recipient: o.recipient as string | undefined,
     amount: o.amount !== undefined ? String(o.amount) : undefined,
     coinId: o.coinId as string | undefined,
@@ -564,9 +544,7 @@ function normaliseBalances(raw: unknown): CoinBalance[] {
     const obj = raw as Record<string, unknown>;
     for (const key of ["coins", "balances", "assets"]) {
       if (Array.isArray(obj[key])) {
-        return (obj[key] as unknown[])
-          .map(coerceBalance)
-          .filter((b): b is CoinBalance => !!b);
+        return (obj[key] as unknown[]).map(coerceBalance).filter((b): b is CoinBalance => !!b);
       }
     }
     // symbol -> amount map
@@ -587,13 +565,8 @@ function normaliseBalances(raw: unknown): CoinBalance[] {
 function coerceBalance(v: unknown): CoinBalance | null {
   if (!v || typeof v !== "object") return null;
   const o = v as Record<string, unknown>;
-  const symbol = (o.symbol ?? o.coinId ?? o.id ?? o.coin ?? o.name) as
-    | string
-    | undefined;
-  const amount = (o.amount ?? o.balance ?? o.value ?? o.total) as
-    | string
-    | number
-    | undefined;
+  const symbol = (o.symbol ?? o.coinId ?? o.id ?? o.coin ?? o.name) as string | undefined;
+  const amount = (o.amount ?? o.balance ?? o.value ?? o.total) as string | number | undefined;
   if (!symbol || amount === undefined) return null;
   return {
     coinId: String(o.coinId ?? symbol),
@@ -620,9 +593,7 @@ function normaliseHistory(raw: unknown): HistoryEntry[] {
           : direction === "incoming"
             ? "in"
             : "out",
-      counterparty: (o.counterparty ?? o.from ?? o.to ?? o.recipient) as
-        | string
-        | undefined,
+      counterparty: (o.counterparty ?? o.from ?? o.to ?? o.recipient) as string | undefined,
       amount: String(o.amount ?? "0"),
       coinId: (o.coinId ?? o.coin) as string | undefined,
       symbol: (o.symbol ?? o.coin) as string | undefined,

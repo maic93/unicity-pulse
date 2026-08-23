@@ -19,13 +19,10 @@ export function ConnectGate({ children }: { children: ReactNode }) {
       >
         <Wallet className="h-7 w-7" />
       </div>
-      <h1 className="mt-6 text-2xl font-semibold tracking-tight">
-        Connect your Sphere Wallet
-      </h1>
+      <h1 className="mt-6 text-2xl font-semibold tracking-tight">Connect your Sphere Wallet</h1>
       <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-        Unicity Pulse talks to the real Unicity Testnet via the official
-        Sphere Connect protocol. Approve the connection in your Sphere
-        wallet to begin.
+        Unicity Pulse talks to the real Unicity Testnet via the official Sphere Connect protocol.
+        Approve the connection in your Sphere wallet to begin.
       </p>
       <Button
         className="mt-7 rounded-full px-6 glow-primary"
